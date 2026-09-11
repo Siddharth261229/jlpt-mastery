@@ -807,6 +807,17 @@
     mastered: "Mastered",
   };
 
+  // ---- SRS (Leitner-style) scheduling constants — see section 6 for the
+  // grading logic that reads/writes these. Kept here alongside the status
+  // system since setStatus() below needs to seed them the moment an item
+  // first becomes "Learning". ----
+  const SRS_INITIAL_INTERVAL_MIN = 10; // first interval a new Learning item gets
+  const SRS_AGAIN_INTERVAL_MIN = 1; // [Again] always resets to this
+  const SRS_HARD_MULTIPLIER = 1.2;
+  const SRS_GOOD_MULTIPLIER = 2.5;
+  const SRS_EASY_MULTIPLIER = 4;
+  const SRS_GRADUATION_INTERVAL_MIN = 60 * 24 * 7; // 7 days: interval this long auto-graduates to Mastered
+
   const state = {
     level: "n5",
     mode: "explorer",
@@ -830,10 +841,27 @@
   }
 
   function setStatus(id, status) {
+    const prev = getStatus(id);
     localStorage.setItem(STATUS_PREFIX + id, status);
+
+    // The moment an item first becomes "Learning" (whether by clicking the
+    // status badge directly, or via a flashcard grade), it needs a starting
+    // point on the review clock. Only seed it if it doesn't already have a
+    // schedule, so demoting a Mastered item back to Learning via [Again]
+    // doesn't clobber the interval [Again] is about to set explicitly.
+    if (status === "learning" && prev !== "learning") {
+      const data = readItemData(id) || {};
+      if (!data.interval) {
+        data.interval = SRS_INITIAL_INTERVAL_MIN;
+        data.nextReviewDate = Date.now();
+        writeItemData(id, data);
+      }
+    }
+
     refreshProgressUI();
     refreshAllStatusToggles();
     applyStatusFilter();
+    refreshFlashcardDueBadge();
   }
 
   function cycleStatus(current) {
@@ -878,6 +906,53 @@
       out.push({ id, status, ...data });
     }
     return out;
+  }
+
+  // ---- SRS scheduling read/write ----
+
+  /** Read this item's current { interval (minutes), nextReviewDate (epoch
+   *  ms) }, falling back to sane defaults for items that predate the SRS
+   *  feature or have never been scheduled yet. */
+  function getSchedule(id) {
+    const data = readItemData(id) || {};
+    return {
+      interval:
+        typeof data.interval === "number"
+          ? data.interval
+          : SRS_INITIAL_INTERVAL_MIN,
+      nextReviewDate:
+        typeof data.nextReviewDate === "number"
+          ? data.nextReviewDate
+          : Date.now(),
+    };
+  }
+
+  function updateSchedule(id, interval, nextReviewDate) {
+    const data = readItemData(id) || {};
+    data.interval = interval;
+    data.nextReviewDate = nextReviewDate;
+    writeItemData(id, data);
+  }
+
+  /** An item with no schedule yet (nextReviewDate undefined — pre-SRS saves,
+   *  or a Mastered item that was never routed through Learning) is always
+   *  considered due; otherwise it's due once its nextReviewDate has passed. */
+  function isDue(item) {
+    return (
+      typeof item.nextReviewDate !== "number" ||
+      item.nextReviewDate <= Date.now()
+    );
+  }
+
+  function countDueReviews(level) {
+    return getAllTrackedItems(["learning", "mastered"], level).filter(isDue)
+      .length;
+  }
+
+  function formatInterval(minutes) {
+    if (minutes < 60) return `${Math.round(minutes)}m`;
+    if (minutes < 60 * 24) return `${(minutes / 60).toFixed(1)}h`;
+    return `${(minutes / (60 * 24)).toFixed(1)}d`;
   }
 
   /** Progress % = (Mastered Items / Total Level Items) * 100, scoped to
@@ -1620,16 +1695,35 @@
     document.getElementById("progressBarFill").style.width = `${p.percent}%`;
   }
 
+  /** Review Queue badge on the Flashcard Deck tab: exact count of items at
+   *  the current level whose nextReviewDate has passed. */
+  function refreshFlashcardDueBadge() {
+    const badge = document.getElementById("flashcardDueBadge");
+    if (!badge) return;
+    const count = countDueReviews(state.level);
+    badge.textContent = count;
+    badge.classList.toggle("hidden", count === 0);
+  }
+
   /* ========================================================================
-     6. FLASHCARD FLIP MODE  (NEW)
-     Pool = everything at the current level marked Learning or Mastered.
-     "Again" demotes a Mastered card back to Learning and requeues it to the
-     back of this session's queue; "Good" graduates a Learning card to
-     Mastered and removes it from the queue; "Easy" masters it immediately.
+     6. FLASHCARD FLIP MODE — now with time-based (Leitner-style) scheduling
+     Pool = everything at the current level marked Learning or Mastered AND
+     currently due (nextReviewDate <= now). Grading:
+       [Again] interval -> 1 minute, always requeues within this session
+       [Hard]  interval -> interval * 1.2
+       [Good]  interval -> interval * 2.5
+       [Easy]  interval -> interval * 4
+     A Learning item auto-graduates to Mastered once its interval reaches
+     SRS_GRADUATION_INTERVAL_MIN (7 days) on a successful (non-Again) grade;
+     Again always demotes Mastered back to Learning, since a miss means it
+     wasn't actually mastered.
      ======================================================================== */
 
   function buildFlashcardPool() {
-    const pool = getAllTrackedItems(["learning", "mastered"], state.level);
+    const pool = getAllTrackedItems(
+      ["learning", "mastered"],
+      state.level,
+    ).filter(isDue);
     state.flashcardQueue = shuffleArray(pool);
     state.flashcardTotal = state.flashcardQueue.length;
   }
@@ -1694,6 +1788,8 @@
     const item = state.flashcardQueue[0];
     document.getElementById("flashcardProgressLabel").textContent =
       `${state.flashcardTotal - state.flashcardQueue.length + 1} / ${state.flashcardTotal}`;
+    document.getElementById("flashcardIntervalLabel").textContent =
+      `current interval: ${formatInterval(getSchedule(item.id).interval)}`;
     document.getElementById("flipCardFront").innerHTML =
       `<span>${escapeHtml(item.display)}</span>`;
     document.getElementById("flipCardBack").innerHTML = flashBackHTML(item);
@@ -1704,17 +1800,40 @@
     const item = state.flashcardQueue[0];
     if (!item) return;
     const currentStatus = getStatus(item.id);
+    const { interval: curInterval } = getSchedule(item.id);
+    const now = Date.now();
 
     if (grade === "again") {
+      // A miss means it wasn't actually mastered — back to the Learning
+      // pool, interval resets to the shortest possible gap, and it's
+      // requeued so the learner can retry it again within this session.
       if (currentStatus === "mastered") setStatus(item.id, "learning");
+      updateSchedule(
+        item.id,
+        SRS_AGAIN_INTERVAL_MIN,
+        now + SRS_AGAIN_INTERVAL_MIN * 60000,
+      );
       state.flashcardQueue.push(state.flashcardQueue.shift());
-    } else if (grade === "good") {
-      if (currentStatus === "learning") setStatus(item.id, "mastered");
-      state.flashcardQueue.shift();
-    } else if (grade === "easy") {
-      setStatus(item.id, "mastered");
-      state.flashcardQueue.shift();
+    } else {
+      const multiplier =
+        grade === "hard"
+          ? SRS_HARD_MULTIPLIER
+          : grade === "easy"
+            ? SRS_EASY_MULTIPLIER
+            : SRS_GOOD_MULTIPLIER; // "good" (and any other value) falls back to the Good multiplier
+      const newInterval = curInterval * multiplier;
+      updateSchedule(item.id, newInterval, now + newInterval * 60000);
+
+      // Graduate out of Learning once the interval has stretched out far
+      // enough that the item is, practically speaking, mastered.
+      if (newInterval >= SRS_GRADUATION_INTERVAL_MIN)
+        setStatus(item.id, "mastered");
+      else if (currentStatus !== "learning") setStatus(item.id, "learning");
+
+      state.flashcardQueue.shift(); // Hard/Good/Easy all leave the session queue
     }
+
+    refreshFlashcardDueBadge();
     renderFlashcardArea();
   }
 
@@ -1999,6 +2118,7 @@
         refreshProgressUI();
         refreshAllStatusToggles();
         applyStatusFilter();
+        refreshFlashcardDueBadge();
       } catch {
         toast("That file doesn't look like a valid Tsuzuri progress export");
       }
@@ -2045,6 +2165,7 @@
 
     if (mode === "gridview") renderGridView();
     if (mode === "flashcard") {
+      refreshFlashcardDueBadge();
       buildFlashcardPool();
       renderFlashcardArea();
     }
@@ -2077,6 +2198,7 @@
     state.level = level;
     await ensureKanjiList(level).catch(() => {});
     refreshProgressUI();
+    refreshFlashcardDueBadge();
     if (state.mode === "explorer") {
       if (state.explorerTab === "kanji") loadKanjiLevelList();
       else if (state.explorerTab === "vocab")
@@ -2271,6 +2393,11 @@
 
     await ensureKanjiList(state.level).catch(() => {});
     refreshProgressUI();
+    refreshFlashcardDueBadge();
+    // The due count changes purely with the passage of time (a card graded
+    // [Again] becomes due again after just 1 minute), so re-check it
+    // periodically even if the learner doesn't touch anything.
+    setInterval(refreshFlashcardDueBadge, 30000);
     loadKanjiLevelList();
   }
 

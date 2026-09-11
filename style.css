@@ -22,6 +22,8 @@
   --gold: #c7a15b; /* used sparingly for JLPT / level tags */
   --gold-soft: rgba(199, 161, 91, 0.14);
   --ok: #7ca77a;
+  --hard: #c1793a; /* muted amber — sits between --seal and --gold, used only for the SRS "Hard" grade */
+  --hard-soft: rgba(193, 121, 58, 0.14);
   --shadow: none;
 
   --font-display: "Shippori Mincho", "Hiragino Mincho ProN", serif;
@@ -47,6 +49,8 @@
   --gold: #91742f;
   --gold-soft: rgba(145, 116, 47, 0.12);
   --ok: #4d7a4a;
+  --hard: #a35f26;
+  --hard-soft: rgba(163, 95, 38, 0.12);
 }
 
 * {
@@ -329,6 +333,23 @@ select:focus-visible {
 .mode-tab.active .tab-index {
   color: var(--seal);
   opacity: 1;
+}
+
+/* Review Queue badge — exact count of due flashcard reviews at the current level */
+.due-badge {
+  background: var(--seal);
+  color: #fff8f2;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  min-width: 1.4em;
+  text-align: center;
+}
+.due-badge.hidden {
+  display: none;
 }
 
 /* ==========================================================================
@@ -1247,6 +1268,12 @@ select:focus-visible {
   color: var(--ink-soft);
 }
 
+.flashcard-interval-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+
 .flip-card {
   width: 100%;
   height: 280px;
@@ -1337,6 +1364,13 @@ select:focus-visible {
 }
 .grade-again:hover {
   background: var(--seal-soft);
+}
+.grade-hard {
+  color: var(--hard);
+  border-color: var(--hard-soft);
+}
+.grade-hard:hover {
+  background: var(--hard-soft);
 }
 .grade-good {
   color: var(--gold);

@@ -74,6 +74,7 @@
           aria-selected="false"
         >
           🎴 Flashcard Deck
+          <span id="flashcardDueBadge" class="due-badge hidden">0</span>
         </button>
         <button
           class="mode-tab"
@@ -277,6 +278,10 @@
         <div id="flashcardArea" class="flashcard-area">
           <div class="flashcard-meta">
             <span id="flashcardProgressLabel">0 / 0</span>
+            <span
+              id="flashcardIntervalLabel"
+              class="flashcard-interval-label"
+            ></span>
             <button id="flashcardShuffle" class="ghost-btn">Shuffle</button>
           </div>
 
@@ -301,6 +306,7 @@
             <button class="grade-btn grade-again" data-grade="again">
               Again
             </button>
+            <button class="grade-btn grade-hard" data-grade="hard">Hard</button>
             <button class="grade-btn grade-good" data-grade="good">Good</button>
             <button class="grade-btn grade-easy" data-grade="easy">Easy</button>
           </div>
