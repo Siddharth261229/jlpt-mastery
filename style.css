@@ -112,11 +112,7 @@ select:focus-visible {
    ========================================================================== */
 
 .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
   background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
   padding: 22px clamp(16px, 4vw, 48px) 0;
 }
@@ -1473,41 +1469,16 @@ select:focus-visible {
 }
 
 /* ==========================================================================
-   UI FIX LAYER — bounded/scrollable explorer grids so a large batch of
-   kanji doesn't push the whole page into one long scroll; thin themed
-   scrollbars to match.
+   UI FIX LAYER — kanji/vocab/grammar/sentence grids are part of normal
+   document flow now (no per-panel scroll container): the whole page scrolls
+   as one unit via the <body>, and the header/progress dashboard scroll out
+   of view naturally instead of staying pinned or boxed in. The .scroll-panel
+   class name is kept on the HTML elements for backward compatibility but no
+   longer constrains height or adds its own scrollbar.
    ========================================================================== */
 
 .scroll-panel {
-  max-height: 64vh;
-  overflow-y: auto;
-  padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--seal) transparent;
-}
-.scroll-panel::-webkit-scrollbar {
-  width: 8px;
-}
-.scroll-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-.scroll-panel::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 4px;
-}
-.scroll-panel::-webkit-scrollbar-thumb:hover {
-  background: var(--seal);
-}
-
-/* Sentence lists read better a bit narrower and don't need as much height */
-#sentenceList.scroll-panel {
-  max-height: 68vh;
-}
-
-@media (max-width: 640px) {
-  .scroll-panel {
-    max-height: 58vh;
-  }
+  /* intentionally no max-height / overflow-y — see note above */
 }
 
 /* ==========================================================================
@@ -1518,7 +1489,6 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
   gap: 8px;
-  max-height: 74vh;
 }
 
 .mini-kanji-card {
