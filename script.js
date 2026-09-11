@@ -1307,6 +1307,106 @@
     }
   }
 
+  // ---- Grid View (rapid whole-level review, NEW) ----
+
+  /** Compact mini-card. Without a detail object yet (still streaming in),
+   *  render a glyph-only loading tile so the grid appears instantly and
+   *  fills in progressively rather than blocking on every kanji at once. */
+  function miniKanjiCardHTML(char, detail) {
+    if (!detail) {
+      return `<div class="mini-kanji-card is-loading" data-char="${char}">
+        <span class="mini-kanji-glyph">${char}</span>
+        <span class="mini-kanji-meaning">…</span>
+      </div>`;
+    }
+    const id = kanjiItemId(detail.kanji);
+    const level = detail.jlpt ? `n${detail.jlpt}` : state.level;
+    writeItemData(id, {
+      type: "kanji",
+      level,
+      char: detail.kanji,
+      display: detail.kanji,
+      meanings: detail.meanings || [],
+      onyomi: detail.on_readings || [],
+      kunyomi: detail.kun_readings || [],
+      strokeCount: detail.stroke_count,
+    });
+    const status = getStatus(id);
+    const meaning = (detail.meanings && detail.meanings[0]) || "—";
+    const onyomi = (detail.on_readings || []).join("・") || "—";
+    const kunyomi = (detail.kun_readings || []).join("・") || "—";
+    return `
+      <div class="mini-kanji-card" data-char="${detail.kanji}" data-item-id="${id}" data-status="${status}" tabindex="0" role="button" aria-label="Open ${detail.kanji}">
+        <span class="mini-kanji-glyph">${detail.kanji}</span>
+        <span class="mini-kanji-meaning">${escapeHtml(meaning)}</span>
+        <span class="mini-kanji-readings"><span class="on">${escapeHtml(onyomi)}</span><br><span class="kun">${escapeHtml(kunyomi)}</span></span>
+      </div>
+    `;
+  }
+
+  /** Render every kanji in the level at once. Characters already in the
+   *  shared kanjiCache (e.g. from browsing Explorer first) render fully
+   *  populated immediately; anything uncached shows a glyph-only tile that
+   *  hydrateGridView() fills in as its detail request resolves. */
+  async function renderGridView() {
+    const container = document.getElementById("gridViewContainer");
+    const targetLevel = state.level;
+    document.getElementById("gridViewLevelName").textContent =
+      targetLevel.toUpperCase();
+    container.innerHTML = kanjiSkeletonHTML(24);
+
+    let chars;
+    try {
+      chars = await ensureKanjiList(targetLevel);
+    } catch (err) {
+      container.innerHTML = `<div class="empty-state"><p>Couldn't reach kanjiapi.dev for the character list. (${escapeHtml(err.message)})</p></div>`;
+      return;
+    }
+    if (state.mode !== "gridview" || state.level !== targetLevel) return; // superseded by a later switch
+
+    document.getElementById("gridViewCount").textContent = chars.length;
+    container.innerHTML = chars
+      .map((c) => miniKanjiCardHTML(c, state.kanjiCache.get(c) || null))
+      .join("");
+    applyStatusFilter();
+    hydrateGridView(chars, targetLevel);
+  }
+
+  /** Background-fill any mini-cards still showing the loading state, in
+   *  bounded concurrency batches so a large N3 list doesn't fire hundreds
+   *  of simultaneous requests. Bails out cleanly if the user has since
+   *  switched away from Grid View or changed level. */
+  async function hydrateGridView(chars, targetLevel) {
+    const CHUNK = 20;
+    const missing = chars.filter((c) => !state.kanjiCache.has(c));
+
+    for (let i = 0; i < missing.length; i += CHUNK) {
+      if (state.mode !== "gridview" || state.level !== targetLevel) return;
+      const chunk = missing.slice(i, i + CHUNK);
+
+      chunk.forEach((char) => {
+        fetchKanjiDetail(char)
+          .then((detail) => {
+            if (state.mode !== "gridview" || state.level !== targetLevel)
+              return;
+            const container = document.getElementById("gridViewContainer");
+            const node =
+              container && container.querySelector(`[data-char="${char}"]`);
+            if (node) node.outerHTML = miniKanjiCardHTML(char, detail);
+            applyStatusFilter();
+          })
+          .catch(() => {
+            const container = document.getElementById("gridViewContainer");
+            const node =
+              container && container.querySelector(`[data-char="${char}"]`);
+            if (node) node.classList.remove("is-loading"); // leave the glyph visible even if detail failed
+          });
+      });
+
+      await Promise.allSettled(chunk.map(fetchKanjiDetail));
+    }
+  }
+
   // ---- Kanji / Vocab Deep-Dive Modal ----
 
   function readingChipsHTML(readings) {
@@ -1943,6 +2043,7 @@
       .getElementById("explorerSubtabs")
       .classList.toggle("hidden", mode !== "explorer");
 
+    if (mode === "gridview") renderGridView();
     if (mode === "flashcard") {
       buildFlashcardPool();
       renderFlashcardArea();
@@ -1981,6 +2082,8 @@
       else if (state.explorerTab === "vocab")
         searchVocab(document.getElementById("universalSearch").value);
       else if (state.explorerTab === "grammar") renderGrammarGrid();
+    } else if (state.mode === "gridview") {
+      renderGridView();
     } else if (state.mode === "flashcard") {
       buildFlashcardPool();
       renderFlashcardArea();
@@ -2095,6 +2198,7 @@
       const quizNext = e.target.closest("#quizNextBtn");
       const kanjiCard = e.target.closest(".kanji-card");
       const vocabCard = e.target.closest(".vocab-card");
+      const miniCard = e.target.closest(".mini-kanji-card:not(.is-loading)");
 
       if (statusBtn) {
         e.stopPropagation();
@@ -2123,12 +2227,17 @@
         openVocabModal(vocabCard.dataset.word, vocabCard.dataset.reading);
         return;
       }
+      if (miniCard) {
+        openKanjiModal(miniCard.dataset.char);
+        return;
+      }
     });
 
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       const kanjiCard = e.target.closest(".kanji-card");
       const vocabCard = e.target.closest(".vocab-card");
+      const miniCard = e.target.closest(".mini-kanji-card:not(.is-loading)");
       if (kanjiCard) {
         e.preventDefault();
         openKanjiModal(kanjiCard.dataset.char);
@@ -2136,6 +2245,10 @@
       if (vocabCard) {
         e.preventDefault();
         openVocabModal(vocabCard.dataset.word, vocabCard.dataset.reading);
+      }
+      if (miniCard) {
+        e.preventDefault();
+        openKanjiModal(miniCard.dataset.char);
       }
     });
 

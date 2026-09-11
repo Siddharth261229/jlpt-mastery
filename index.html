@@ -61,6 +61,14 @@
         </button>
         <button
           class="mode-tab"
+          data-mode="gridview"
+          role="tab"
+          aria-selected="false"
+        >
+          🗂 Grid View
+        </button>
+        <button
+          class="mode-tab"
           data-mode="flashcard"
           role="tab"
           aria-selected="false"
@@ -230,6 +238,19 @@
           </div>
           <div id="sentenceList" class="sentence-list scroll-panel"></div>
         </div>
+      </section>
+
+      <!-- ---------- GRID VIEW (rapid whole-level review) ---------- -->
+      <section id="panel-gridview" class="mode-panel" aria-label="Grid View">
+        <div class="panel-heading">
+          <h2>Grid View</h2>
+          <p>
+            Every kanji for <span id="gridViewLevelName">N5</span> at once —
+            <span id="gridViewCount">0</span> characters. Scan the set, then
+            click any tile for the full Deep-Dive panel.
+          </p>
+        </div>
+        <div id="gridViewContainer" class="mini-card-grid scroll-panel"></div>
       </section>
 
       <!-- ---------- FLASHCARD DECK ---------- -->
