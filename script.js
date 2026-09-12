@@ -789,6 +789,288 @@
   );
 
   /* ========================================================================
+     2c. DOKKAI (READING COMPREHENSION) MINI-STORIES  (NEW)
+     One short hardcoded story per level. Each sentence is authored as a
+     chunk list rather than a plain string: a chunk with a `reading` renders
+     as <ruby>text<rt>reading</rt></ruby> (word-level furigana — the same
+     convention used in real graded readers), a chunk without one renders as
+     plain text (kana, particles, punctuation, katakana loanwords). The N3
+     story deliberately reuses several of the exact grammar patterns from
+     the Grammar tab (わけではない / つつある / さえ〜ば / おかげで / ばよかった)
+     so Reading Practice reinforces what the learner studied there.
+     ======================================================================== */
+
+  const DOKKAI_STORIES = {
+    n5: {
+      title: "わたしの一日 (My Day)",
+      sentences: [
+        {
+          chunks: [
+            { text: "私", reading: "わたし" },
+            { text: "は" },
+            { text: "毎朝", reading: "まいあさ" },
+            { text: "七時", reading: "しちじ" },
+            { text: "に" },
+            { text: "起", reading: "お" },
+            { text: "きます。" },
+          ],
+          english: "I get up at seven every morning.",
+        },
+        {
+          chunks: [
+            { text: "それから、" },
+            { text: "朝", reading: "あさ" },
+            { text: "ご飯", reading: "ごはん" },
+            { text: "を" },
+            { text: "食", reading: "た" },
+            { text: "べます。" },
+          ],
+          english: "After that, I eat breakfast.",
+        },
+        {
+          chunks: [
+            { text: "八時", reading: "はちじ" },
+            { text: "に" },
+            { text: "学校", reading: "がっこう" },
+            { text: "へ" },
+            { text: "行", reading: "い" },
+            { text: "きます。" },
+          ],
+          english: "I go to school at eight.",
+        },
+        {
+          chunks: [
+            { text: "学校", reading: "がっこう" },
+            { text: "で" },
+            { text: "友達", reading: "ともだち" },
+            { text: "と" },
+            { text: "日本語", reading: "にほんご" },
+            { text: "を" },
+            { text: "勉強", reading: "べんきょう" },
+            { text: "します。" },
+          ],
+          english: "I study Japanese with friends at school.",
+        },
+        {
+          chunks: [
+            { text: "夜", reading: "よる" },
+            { text: "、" },
+            { text: "家", reading: "いえ" },
+            { text: "で" },
+            { text: "テレビ" },
+            { text: "を" },
+            { text: "見", reading: "み" },
+            { text: "ます。" },
+          ],
+          english: "At night, I watch TV at home.",
+        },
+        {
+          chunks: [
+            { text: "今日", reading: "きょう" },
+            { text: "はいい" },
+            { text: "一日", reading: "いちにち" },
+            { text: "でした。" },
+          ],
+          english: "Today was a good day.",
+        },
+      ],
+    },
+    n4: {
+      title: "日本旅行 (My Trip to Japan)",
+      sentences: [
+        {
+          chunks: [
+            { text: "去年", reading: "きょねん" },
+            { text: "、" },
+            { text: "初", reading: "はじ" },
+            { text: "めて" },
+            { text: "日本", reading: "にほん" },
+            { text: "へ" },
+            { text: "旅行", reading: "りょこう" },
+            { text: "しました。" },
+          ],
+          english: "Last year, I traveled to Japan for the first time.",
+        },
+        {
+          chunks: [
+            { text: "京都", reading: "きょうと" },
+            { text: "の" },
+            { text: "お" },
+            { text: "寺", reading: "てら" },
+            { text: "はとても" },
+            { text: "静", reading: "しず" },
+            { text: "かで" },
+            { text: "美", reading: "うつく" },
+            { text: "しかったです。" },
+          ],
+          english: "Kyoto's temples were very quiet and beautiful.",
+        },
+        {
+          chunks: [
+            { text: "日本語", reading: "にほんご" },
+            { text: "で" },
+            { text: "注文", reading: "ちゅうもん" },
+            { text: "するのは" },
+            { text: "難", reading: "むずか" },
+            { text: "しそうでしたが、" },
+            { text: "頑張", reading: "がんば" },
+            { text: "りました。" },
+          ],
+          english: "Ordering in Japanese seemed difficult, but I did my best.",
+        },
+        {
+          chunks: [
+            { text: "少", reading: "すこ" },
+            { text: "しずつ、" },
+            { text: "簡単", reading: "かんたん" },
+            { text: "な" },
+            { text: "会話", reading: "かいわ" },
+            { text: "ができるようになりました。" },
+          ],
+          english:
+            "Little by little, I became able to have simple conversations.",
+        },
+        {
+          chunks: [
+            { text: "また" },
+            { text: "日本", reading: "にほん" },
+            { text: "へ" },
+            { text: "行", reading: "い" },
+            { text: "ったことがある" },
+            { text: "友達", reading: "ともだち" },
+            { text: "に" },
+            { text: "色々", reading: "いろいろ" },
+            { text: "な" },
+            { text: "話", reading: "はなし" },
+            { text: "を" },
+            { text: "聞", reading: "き" },
+            { text: "きました。" },
+          ],
+          english:
+            "I also heard various stories from a friend who has been to Japan before.",
+        },
+        {
+          chunks: [
+            { text: "来年", reading: "らいねん" },
+            { text: "、もう" },
+            { text: "一度", reading: "いちど" },
+            { text: "行", reading: "い" },
+            { text: "きたいと" },
+            { text: "思", reading: "おも" },
+            { text: "っています。" },
+          ],
+          english: "Next year, I'm thinking of going once more.",
+        },
+      ],
+    },
+    n3: {
+      title: "転職の決断 (The Decision to Change Jobs)",
+      sentences: [
+        {
+          chunks: [
+            { text: "田中", reading: "たなか" },
+            { text: "さんは" },
+            { text: "十年間", reading: "じゅうねんかん" },
+            { text: "、" },
+            { text: "同", reading: "おな" },
+            { text: "じ" },
+            { text: "会社", reading: "かいしゃ" },
+            { text: "で" },
+            { text: "働", reading: "はたら" },
+            { text: "いてきました。" },
+          ],
+          english: "Mr. Tanaka has worked at the same company for ten years.",
+        },
+        {
+          chunks: [
+            { text: "仕事", reading: "しごと" },
+            { text: "に" },
+            { text: "不満", reading: "ふまん" },
+            { text: "があったわけではありませんが、" },
+            { text: "新", reading: "あたら" },
+            { text: "しい" },
+            { text: "挑戦", reading: "ちょうせん" },
+            { text: "をしたいと" },
+            { text: "感", reading: "かん" },
+            { text: "じていました。" },
+          ],
+          english:
+            "It's not that he was dissatisfied with his job, but he felt he wanted a new challenge.",
+        },
+        {
+          chunks: [
+            { text: "社会", reading: "しゃかい" },
+            { text: "は" },
+            { text: "急速", reading: "きゅうそく" },
+            { text: "に" },
+            { text: "変", reading: "か" },
+            { text: "わりつつあり、" },
+            { text: "彼", reading: "かれ" },
+            { text: "は" },
+            { text: "自分", reading: "じぶん" },
+            { text: "の" },
+            { text: "将来", reading: "しょうらい" },
+            { text: "について" },
+            { text: "真剣", reading: "しんけん" },
+            { text: "に" },
+            { text: "考", reading: "かんが" },
+            { text: "えました。" },
+          ],
+          english:
+            "Society is rapidly changing, and he seriously thought about his own future.",
+        },
+        {
+          chunks: [
+            { text: "家族", reading: "かぞく" },
+            { text: "の" },
+            { text: "理解", reading: "りかい" },
+            { text: "さえあれば、" },
+            { text: "転職", reading: "てんしょく" },
+            { text: "しても" },
+            { text: "大丈夫", reading: "だいじょうぶ" },
+            { text: "だと" },
+            { text: "思", reading: "おも" },
+            { text: "いました。" },
+          ],
+          english:
+            "He thought that as long as he had his family's understanding, it would be okay to change jobs.",
+        },
+        {
+          chunks: [
+            { text: "妻", reading: "つま" },
+            { text: "のおかげで、" },
+            { text: "勇気", reading: "ゆうき" },
+            { text: "を" },
+            { text: "持", reading: "も" },
+            { text: "って" },
+            { text: "新", reading: "あたら" },
+            { text: "しい" },
+            { text: "会社", reading: "かいしゃ" },
+            { text: "に" },
+            { text: "応募", reading: "おうぼ" },
+            { text: "することができました。" },
+          ],
+          english:
+            "Thanks to his wife, he was able to muster the courage to apply to a new company.",
+        },
+        {
+          chunks: [
+            { text: "今", reading: "いま" },
+            { text: "では、もっと" },
+            { text: "早", reading: "はや" },
+            { text: "く" },
+            { text: "決断", reading: "けつだん" },
+            { text: "すればよかったと" },
+            { text: "思", reading: "おも" },
+            { text: "っています。" },
+          ],
+          english: "Now, he thinks he should have made the decision sooner.",
+        },
+      ],
+    },
+  };
+
+  /* ========================================================================
      3. GLOBAL STATE + LOCALSTORAGE STATUS/DATA SYSTEM
      Every trackable item (kanji, vocab word, grammar point) gets a stable
      id like "kanji:食" / "vocab:食べる" / "grammar:〜たいです". Its 3-state
@@ -1096,6 +1378,62 @@
       return;
     }
     list.innerHTML = filtered.map(buildSentenceCardHTML).join("");
+  }
+
+  // ---- Reading Practice / Dokkai (NEW) ----
+
+  /** Render one sentence's chunk list as ruby-annotated HTML: a chunk with
+   *  a `reading` becomes <ruby>text<rt>reading</rt></ruby> (furigana), a
+   *  chunk without one is plain escaped text (kana, particles, katakana). */
+  function buildFuriganaSentenceHTML(chunks) {
+    return chunks
+      .map((c) =>
+        c.reading
+          ? `<ruby>${escapeHtml(c.text)}<rt>${escapeHtml(c.reading)}</rt></ruby>`
+          : escapeHtml(c.text),
+      )
+      .join("");
+  }
+
+  function renderReadingStory() {
+    const container = document.getElementById("readingStory");
+    const story = DOKKAI_STORIES[state.level];
+    document.getElementById("readingLevelName").textContent =
+      state.level.toUpperCase();
+
+    if (!story) {
+      container.innerHTML = `<div class="empty-state"><p>No reading passage for this level yet.</p></div>`;
+      return;
+    }
+
+    const furiganaHidden = !document.getElementById("furiganaToggle").checked;
+    container.classList.toggle("furigana-hidden", furiganaHidden);
+
+    const rows = story.sentences
+      .map(
+        (sentence, i) => `
+      <div class="dokkai-sentence-row">
+        <span class="dokkai-sentence" data-sentence-index="${i}" tabindex="0" role="button" aria-label="Translate sentence ${i + 1}">${buildFuriganaSentenceHTML(sentence.chunks)}</span>
+        <p class="sentence-translation" data-sentence-index="${i}">${escapeHtml(sentence.english)}</p>
+      </div>
+    `,
+      )
+      .join("");
+
+    container.innerHTML = `<h3 class="reading-story-title">${escapeHtml(story.title)}</h3>${rows}`;
+  }
+
+  /** Tap-to-translate: flip the clicked sentence's highlight and slide its
+   *  matching translation open/closed. Each sentence toggles independently
+   *  so the learner can compare several at once if they want to. */
+  function toggleDokkaiTranslation(sentenceEl) {
+    const index = sentenceEl.getAttribute("data-sentence-index");
+    const translationEl = document.querySelector(
+      `.sentence-translation[data-sentence-index="${index}"]`,
+    );
+    if (!translationEl) return;
+    sentenceEl.classList.toggle("active");
+    translationEl.classList.toggle("open");
   }
 
   // ---- Grammar cards (NEW) ----
@@ -2164,6 +2502,7 @@
       .classList.toggle("hidden", mode !== "explorer");
 
     if (mode === "gridview") renderGridView();
+    if (mode === "reading") renderReadingStory();
     if (mode === "flashcard") {
       refreshFlashcardDueBadge();
       buildFlashcardPool();
@@ -2206,6 +2545,8 @@
       else if (state.explorerTab === "grammar") renderGrammarGrid();
     } else if (state.mode === "gridview") {
       renderGridView();
+    } else if (state.mode === "reading") {
+      renderReadingStory();
     } else if (state.mode === "flashcard") {
       buildFlashcardPool();
       renderFlashcardArea();
@@ -2279,6 +2620,16 @@
       .getElementById("kanjiLoadMore")
       .addEventListener("click", renderNextKanjiBatch);
 
+    // Reading Practice: master furigana switch just toggles a CSS class,
+    // no re-render needed since the ruby markup is already in the DOM.
+    document
+      .getElementById("furiganaToggle")
+      .addEventListener("change", (e) => {
+        document
+          .getElementById("readingStory")
+          .classList.toggle("furigana-hidden", !e.target.checked);
+      });
+
     // Export / import
     document
       .getElementById("exportBtn")
@@ -2321,6 +2672,7 @@
       const kanjiCard = e.target.closest(".kanji-card");
       const vocabCard = e.target.closest(".vocab-card");
       const miniCard = e.target.closest(".mini-kanji-card:not(.is-loading)");
+      const dokkaiSentence = e.target.closest(".dokkai-sentence");
 
       if (statusBtn) {
         e.stopPropagation();
@@ -2353,6 +2705,10 @@
         openKanjiModal(miniCard.dataset.char);
         return;
       }
+      if (dokkaiSentence) {
+        toggleDokkaiTranslation(dokkaiSentence);
+        return;
+      }
     });
 
     document.addEventListener("keydown", (e) => {
@@ -2360,6 +2716,7 @@
       const kanjiCard = e.target.closest(".kanji-card");
       const vocabCard = e.target.closest(".vocab-card");
       const miniCard = e.target.closest(".mini-kanji-card:not(.is-loading)");
+      const dokkaiSentence = e.target.closest(".dokkai-sentence");
       if (kanjiCard) {
         e.preventDefault();
         openKanjiModal(kanjiCard.dataset.char);
@@ -2371,6 +2728,10 @@
       if (miniCard) {
         e.preventDefault();
         openKanjiModal(miniCard.dataset.char);
+      }
+      if (dokkaiSentence) {
+        e.preventDefault();
+        toggleDokkaiTranslation(dokkaiSentence);
       }
     });
 

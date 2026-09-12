@@ -69,6 +69,14 @@
         </button>
         <button
           class="mode-tab"
+          data-mode="reading"
+          role="tab"
+          aria-selected="false"
+        >
+          📖 Reading Practice
+        </button>
+        <button
+          class="mode-tab"
           data-mode="flashcard"
           role="tab"
           aria-selected="false"
@@ -252,6 +260,31 @@
           </p>
         </div>
         <div id="gridViewContainer" class="mini-card-grid scroll-panel"></div>
+      </section>
+
+      <!-- ---------- READING PRACTICE (Dokkai) ---------- -->
+      <section
+        id="panel-reading"
+        class="mode-panel"
+        aria-label="Reading Practice"
+      >
+        <div class="panel-heading">
+          <h2>Reading Practice (読解)</h2>
+          <p>
+            A short graded story for <span id="readingLevelName">N5</span>.
+            Click any sentence to reveal its English translation.
+          </p>
+        </div>
+
+        <div class="reading-controls">
+          <label class="furigana-switch">
+            <input type="checkbox" id="furiganaToggle" checked />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+            <span class="switch-label">Show Furigana</span>
+          </label>
+        </div>
+
+        <article id="readingStory" class="reading-story"></article>
       </section>
 
       <!-- ---------- FLASHCARD DECK ---------- -->
