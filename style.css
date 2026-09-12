@@ -4,6 +4,19 @@
    Two themes: "ink" (dark, default) evokes a night study session under a
    lamp; "paper" (light) evokes a printed grammar textbook. A single hanko
    (seal-stamp) red carries all emphasis — nothing else competes with it.
+
+   ARCHITECTURE NOTE (mobile-first):
+   Every rule below is written for a phone screen first. Two consolidated
+   breakpoints layer on enhancements as the viewport grows:
+     - Tablet:  min-width: 768px
+     - Desktop: min-width: 1024px
+   Card grids use `repeat(auto-fit, minmax(...))`, so column count itself
+   needs no breakpoint at all -- it's a continuous function of viewport
+   width. Typography and spacing use `clamp()` for the same reason: most
+   sizes scale smoothly and never need a breakpoint override. The two
+   breakpoints below are reserved for genuine structural shifts (a stacked
+   header becoming a row, a vertical modal hero becoming horizontal) that
+   clamp() can't express on its own.
    ========================================================================== */
 
 :root {
@@ -16,13 +29,13 @@
   --ink: #eee9de;
   --ink-soft: #a8a49b;
   --ink-faint: #6f6c66;
-  --seal: #b8453a; /* hanko seal red — the single accent */
+  --seal: #b8453a;
   --seal-soft: rgba(184, 69, 58, 0.16);
   --seal-strong: #d65a4c;
-  --gold: #c7a15b; /* used sparingly for JLPT / level tags */
+  --gold: #c7a15b;
   --gold-soft: rgba(199, 161, 91, 0.14);
   --ok: #7ca77a;
-  --hard: #c1793a; /* muted amber — sits between --seal and --gold, used only for the SRS "Hard" grade */
+  --hard: #c1793a;
   --hard-soft: rgba(193, 121, 58, 0.14);
   --shadow: none;
 
@@ -32,6 +45,26 @@
 
   --radius: 3px;
   --measure: 74ch;
+
+  /* ---- Fluid spacing scale ---- */
+  --space-2xs: clamp(0.25rem, 0.6vw, 0.375rem);
+  --space-xs: clamp(0.4rem, 1vw, 0.5rem);
+  --space-sm: clamp(0.6rem, 1.8vw, 0.75rem);
+  --space-md: clamp(0.85rem, 2.5vw, 1.125rem);
+  --space-lg: clamp(1.25rem, 3.5vw, 2rem);
+  --space-xl: clamp(1.75rem, 5vw, 3rem);
+  --page-pad-x: clamp(1rem, 4vw, 3rem);
+
+  /* ---- Fluid type scale ---- */
+  --fs-brand-mark: clamp(1.6rem, 5vw, 2.1rem);
+  --fs-h1: clamp(1.1rem, 3vw, 1.4rem);
+  --fs-panel-h2: clamp(1.2rem, 1vw + 1rem, 1.5rem);
+  --fs-kanji-glyph: clamp(2rem, 8vw, 2.6rem);
+  --fs-modal-glyph: clamp(3rem, 14vw, 5rem);
+  --fs-vocab-word: clamp(1.1rem, 4vw, 1.35rem);
+  --fs-mini-glyph: clamp(1.4rem, 5vw, 1.65rem);
+  --fs-flash-front: clamp(2.4rem, 10vw, 3.4rem);
+  --fs-dokkai-sentence: clamp(1.05rem, 1vw + 0.9rem, 1.2rem);
 }
 
 [data-theme="paper"] {
@@ -59,10 +92,13 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
   background:
     radial-gradient(
       ellipse at top left,
@@ -72,6 +108,7 @@ body {
     var(--bg);
   color: var(--ink);
   font-family: var(--font-ui);
+  font-size: 100%;
   line-height: 1.55;
   min-height: 100vh;
   transition:
@@ -102,7 +139,12 @@ select {
   font-family: inherit;
 }
 
-/* Visible keyboard focus everywhere */
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -111,33 +153,38 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* ==========================================================================
    HEADER
+   Mobile base: everything stacks in a single column. Tablet (>=768px)
+   pulls the brand and controls onto one row.
    ========================================================================== */
 
 .site-header {
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   border-bottom: 1px solid var(--line);
-  padding: 22px clamp(16px, 4vw, 48px) 0;
+  padding: var(--space-md) var(--page-pad-x) 0;
 }
 
 .header-top {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 .brand {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: var(--space-sm);
 }
 
 .brand-mark {
   font-family: var(--font-display);
-  font-size: 2.1rem;
+  font-size: var(--fs-brand-mark);
   font-weight: 800;
   color: var(--seal);
   line-height: 1;
@@ -145,14 +192,14 @@ select:focus-visible {
 
 .brand-text h1 {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: var(--fs-h1);
   font-weight: 600;
   margin: 0;
   letter-spacing: 0.02em;
 }
 
 .brand-text p {
-  margin: 2px 0 0;
+  margin: 0.125rem 0 0;
   font-size: 0.78rem;
   color: var(--ink-faint);
   letter-spacing: 0.03em;
@@ -161,16 +208,17 @@ select:focus-visible {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 .level-select-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 6px 12px;
+  padding: 0.375rem 0.75rem;
   background: var(--bg-raised);
 }
 
@@ -192,8 +240,9 @@ select:focus-visible {
 }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
   border-radius: var(--radius);
   border: 1px solid var(--line-strong);
   background: var(--bg-raised);
@@ -213,21 +262,22 @@ select:focus-visible {
 /* --- search --- */
 
 .search-row {
-  margin-top: 18px;
+  margin-top: var(--space-md);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .search-box {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-xs);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--bg-raised);
-  padding: 10px 14px;
+  padding: 0.625rem 0.875rem;
   transition: border-color 0.15s ease;
 }
 .search-box:focus-within {
@@ -238,10 +288,12 @@ select:focus-visible {
   font-family: var(--font-display);
   color: var(--seal);
   font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .search-box input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   color: var(--ink);
@@ -260,8 +312,9 @@ select:focus-visible {
   color: var(--ink-faint);
   font-size: 1.1rem;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 0.125rem 0.25rem;
   display: none;
+  flex-shrink: 0;
 }
 .clear-btn.visible {
   display: block;
@@ -273,7 +326,7 @@ select:focus-visible {
 .search-status {
   font-size: 0.76rem;
   color: var(--ink-faint);
-  min-width: 90px;
+  flex-shrink: 0;
   text-align: right;
   white-space: nowrap;
 }
@@ -284,14 +337,18 @@ select:focus-visible {
   color: var(--seal);
 }
 
-/* --- mode tabs --- */
+/* --- mode tabs ---
+   Kept as a horizontally-scrolling strip rather than flex-wrap: with five
+   tabs plus a badge, wrapping mid-row on a phone looks broken, whereas a
+   native-feeling horizontal swipe is a standard mobile nav pattern. */
 
 .mode-tabs {
-  margin-top: 18px;
+  margin-top: var(--space-md);
   display: flex;
   gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .mode-tabs::-webkit-scrollbar {
   display: none;
@@ -303,13 +360,13 @@ select:focus-visible {
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--ink-faint);
-  padding: 10px 18px 12px;
-  font-size: 0.88rem;
+  padding: 0.625rem 1rem 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   white-space: nowrap;
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-xs);
   transition:
     color 0.15s ease,
     border-color 0.15s ease;
@@ -335,7 +392,6 @@ select:focus-visible {
   opacity: 1;
 }
 
-/* Review Queue badge — exact count of due flashcard reviews at the current level */
 .due-badge {
   background: var(--seal);
   color: #fff8f2;
@@ -343,13 +399,149 @@ select:focus-visible {
   font-size: 0.66rem;
   font-weight: 700;
   line-height: 1;
-  padding: 3px 6px;
+  padding: 0.1875rem 0.375rem;
   border-radius: 999px;
   min-width: 1.4em;
   text-align: center;
 }
 .due-badge.hidden {
   display: none;
+}
+
+/* --- progress dashboard --- */
+
+.progress-dashboard {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.progress-top-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.progress-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.progress-label #progressPercent {
+  color: var(--seal);
+  font-size: 1.15rem;
+}
+.progress-sublabel {
+  font-weight: 400;
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+}
+
+.progress-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  font-size: 0.8rem;
+}
+.count-chip {
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.count-chip.mastered span {
+  color: var(--ok);
+  font-weight: 700;
+}
+.count-chip.learning span {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.progress-bar-track {
+  margin-top: var(--space-sm);
+  height: 0.5rem;
+  border-radius: 5px;
+  background: var(--bg-raised-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--seal), var(--gold));
+  transition: width 0.35s ease;
+}
+
+.progress-bottom-row {
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.filter-chip {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  padding: 0.3125rem 0.6875rem;
+  border-radius: 999px;
+}
+.filter-chip:hover {
+  border-color: var(--seal);
+  color: var(--seal);
+}
+.filter-chip.active {
+  background: var(--seal);
+  border-color: var(--seal);
+  color: #fff8f2;
+}
+
+.data-management {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+/* --- Explorer sub-tabs (same horizontal-scroll reasoning as mode-tabs) --- */
+
+.explorer-subtabs {
+  margin-top: var(--space-sm);
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.explorer-subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.subtab {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.82rem;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.subtab:hover {
+  color: var(--ink);
+}
+.subtab.active {
+  color: var(--seal);
+  border-bottom-color: var(--seal);
+  font-weight: 600;
 }
 
 /* ==========================================================================
@@ -359,7 +551,7 @@ select:focus-visible {
 .app-main {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 32px clamp(16px, 4vw, 48px) 80px;
+  padding: var(--space-lg) var(--page-pad-x) var(--space-xl);
 }
 
 .mode-panel {
@@ -368,6 +560,14 @@ select:focus-visible {
 .mode-panel.active {
   display: block;
   animation: fadeIn 0.2s ease;
+}
+
+.explorer-subpanel {
+  display: none;
+  padding-top: var(--space-lg);
+}
+.explorer-subpanel.active {
+  display: block;
 }
 
 @keyframes fadeIn {
@@ -382,14 +582,14 @@ select:focus-visible {
 }
 
 .panel-heading {
-  margin-bottom: 22px;
+  margin-bottom: var(--space-lg);
   max-width: var(--measure);
 }
 
 .panel-heading h2 {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  margin: 0 0 6px;
+  font-size: var(--fs-panel-h2);
+  margin: 0 0 0.375rem;
   font-weight: 600;
 }
 
@@ -399,18 +599,22 @@ select:focus-visible {
   font-size: 0.92rem;
 }
 
-/* --- card grid --- */
+/* --- card grid ---
+   Mobile-first CSS Grid macro layout: `auto-fit` + `minmax(150px, 1fr)`
+   means the browser works out the column count from available width with
+   no breakpoint needed at all -- 2 columns on a phone, 5-6 on a laptop,
+   scaling continuously in between. */
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-sm);
 }
 
 .empty-state {
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
-  padding: 28px;
+  padding: var(--space-lg);
   color: var(--ink-faint);
   font-size: 0.9rem;
   max-width: var(--measure);
@@ -422,7 +626,7 @@ select:focus-visible {
 .load-more-wrap {
   display: flex;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: var(--space-lg);
 }
 .load-more-wrap.hidden {
   display: none;
@@ -436,7 +640,7 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line-strong);
   color: var(--ink);
-  padding: 9px 18px;
+  padding: 0.5625rem 1.125rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
   font-weight: 500;
@@ -453,7 +657,7 @@ select:focus-visible {
   background: var(--seal);
   border: 1px solid var(--seal);
   color: #fff8f2;
-  padding: 9px 18px;
+  padding: 0.5625rem 1.125rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
   font-weight: 600;
@@ -467,7 +671,7 @@ select:focus-visible {
   background: transparent;
   border: 1px solid var(--line-strong);
   color: var(--ink-faint);
-  padding: 9px 18px;
+  padding: 0.5625rem 1.125rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
 }
@@ -481,7 +685,7 @@ select:focus-visible {
   border: none;
   color: var(--ink-faint);
   font-size: 0.78rem;
-  padding: 4px 6px;
+  padding: 0.25rem 0.375rem;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -490,7 +694,7 @@ select:focus-visible {
 }
 
 /* ==========================================================================
-   KANJI / VOCAB CARDS
+   KANJI / VOCAB CARDS -- Flexbox for the inner (micro) layout of each card
    ========================================================================== */
 
 .kanji-card,
@@ -500,10 +704,11 @@ select:focus-visible {
   border: 1px solid var(--line);
   border-left: 3px solid var(--seal);
   border-radius: var(--radius);
-  padding: 16px 16px 14px;
+  padding: var(--space-md) var(--space-md) var(--space-sm);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm);
+  min-width: 0;
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -519,19 +724,19 @@ select:focus-visible {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .kanji-glyph {
   font-family: var(--font-display);
-  font-size: 2.6rem;
+  font-size: var(--fs-kanji-glyph);
   line-height: 1;
   font-weight: 600;
 }
 
 .vocab-word {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: var(--fs-vocab-word);
   font-weight: 600;
 }
 .vocab-reading {
@@ -539,7 +744,7 @@ select:focus-visible {
   font-size: 0.82rem;
   color: var(--ink-soft);
   font-weight: 400;
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 .jlpt-tag {
@@ -549,7 +754,7 @@ select:focus-visible {
   color: var(--gold);
   background: var(--gold-soft);
   border-radius: var(--radius);
-  padding: 3px 7px;
+  padding: 0.1875rem 0.4375rem;
   white-space: nowrap;
   align-self: flex-start;
 }
@@ -572,10 +777,11 @@ select:focus-visible {
 .card-actions {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding-top: 8px;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--line);
 }
 
@@ -584,7 +790,7 @@ select:focus-visible {
   border: 1px solid var(--line-strong);
   color: var(--ink-soft);
   font-size: 0.72rem;
-  padding: 5px 10px;
+  padding: 0.3125rem 0.625rem;
   border-radius: var(--radius);
   transition: all 0.15s ease;
 }
@@ -603,7 +809,7 @@ select:focus-visible {
   border: none;
   color: var(--ink-faint);
   font-size: 0.95rem;
-  padding: 4px 6px;
+  padding: 0.25rem 0.375rem;
 }
 .speak-btn:hover {
   color: var(--seal);
@@ -613,7 +819,7 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  height: 128px;
+  height: 8rem;
   position: relative;
   overflow: hidden;
 }
@@ -639,7 +845,7 @@ select:focus-visible {
 }
 
 /* ==========================================================================
-   KANJI DEEP-DIVE MODAL
+   KANJI DEEP-DIVE MODAL -- Flexbox centers the dialog on every screen size
    ========================================================================== */
 
 .modal-overlay {
@@ -647,9 +853,9 @@ select:focus-visible {
   inset: 0;
   background: rgba(10, 9, 7, 0.66);
   display: none;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 5vh 16px;
+  padding: var(--space-md);
   overflow-y: auto;
   z-index: 100;
 }
@@ -663,7 +869,10 @@ select:focus-visible {
   border-radius: var(--radius);
   max-width: 640px;
   width: 100%;
+  max-height: calc(100vh - 2 * var(--space-md));
+  overflow-y: auto;
   position: relative;
+  margin: auto;
   animation: modalIn 0.18s ease;
 }
 @keyframes modalIn {
@@ -679,8 +888,8 @@ select:focus-visible {
 
 .modal-close {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: 0.75rem;
+  right: 0.875rem;
   background: none;
   border: none;
   color: var(--ink-faint);
@@ -693,21 +902,22 @@ select:focus-visible {
 }
 
 .kanji-modal-body {
-  padding: 32px 30px 28px;
+  padding: var(--space-lg) var(--space-md) var(--space-lg);
 }
 
 .modal-hero {
   display: flex;
-  align-items: center;
-  gap: 22px;
-  padding-bottom: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding-bottom: var(--space-md);
   border-bottom: 1px solid var(--line);
-  margin-bottom: 20px;
+  margin-bottom: var(--space-md);
 }
 
 .modal-kanji-glyph {
   font-family: var(--font-display);
-  font-size: 5rem;
+  font-size: var(--fs-modal-glyph);
   font-weight: 700;
   line-height: 1;
 }
@@ -715,11 +925,12 @@ select:focus-visible {
 .modal-hero-meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
+  min-width: 0;
 }
 .modal-hero-tags {
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
   flex-wrap: wrap;
 }
 
@@ -730,36 +941,36 @@ select:focus-visible {
 
 .modal-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 6px;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: 0.375rem;
 }
 
 .reading-section {
-  margin-bottom: 18px;
+  margin-bottom: var(--space-md);
 }
 .reading-section h4 {
   font-size: 0.72rem;
-  text-transform: none;
   letter-spacing: 0.03em;
   color: var(--seal);
-  margin: 0 0 8px;
+  margin: 0 0 0.5rem;
   font-weight: 700;
 }
 
 .reading-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .reading-chip {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 7px 11px;
+  padding: 0.4375rem 0.6875rem;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 64px;
+  gap: 0.125rem;
+  min-width: 4rem;
 }
 .reading-chip .kana {
   font-size: 1rem;
@@ -771,12 +982,12 @@ select:focus-visible {
 }
 
 .modal-sentences-wrap {
-  margin-top: 22px;
+  margin-top: var(--space-md);
 }
 .modal-sentences-wrap h4 {
   font-size: 0.72rem;
   color: var(--seal);
-  margin: 0 0 10px;
+  margin: 0 0 0.625rem;
   font-weight: 700;
 }
 
@@ -787,7 +998,7 @@ select:focus-visible {
 .sentence-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-md);
   max-width: var(--measure);
 }
 
@@ -795,36 +1006,37 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 16px 18px;
+  padding: var(--space-md);
 }
 
 .sentence-lines {
   display: grid;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .sentence-line {
   display: grid;
-  grid-template-columns: 92px 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(4rem, 5.5rem) 1fr;
+  gap: var(--space-xs);
   align-items: baseline;
-  padding: 3px 0;
+  padding: 0.1875rem 0;
 }
 
 .sentence-line .line-tag {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   color: var(--ink-faint);
   letter-spacing: 0.02em;
-  padding-top: 3px;
+  padding-top: 0.1875rem;
 }
 
 .sentence-line .line-text {
-  font-size: 0.98rem;
+  font-size: 0.94rem;
+  word-break: break-word;
 }
 .sentence-line.kanjikana .line-text {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 .sentence-line.furigana .line-text {
   color: var(--ink-soft);
@@ -835,7 +1047,7 @@ select:focus-visible {
 }
 .sentence-line.romaji .line-text {
   font-family: var(--font-mono);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   color: var(--gold);
 }
 .sentence-line.english .line-text {
@@ -844,18 +1056,19 @@ select:focus-visible {
 }
 
 .sentence-footer {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
   border-top: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .sentence-keywords {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
   flex-wrap: wrap;
 }
 .keyword-chip {
@@ -863,111 +1076,7 @@ select:focus-visible {
   color: var(--ink-faint);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 2px 7px;
-}
-
-/* ==========================================================================
-   SRS DECK
-   ========================================================================== */
-
-.srs-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
-}
-
-.srs-stats {
-  font-size: 0.86rem;
-  color: var(--ink-soft);
-}
-#srsCount {
-  color: var(--seal);
-  font-weight: 700;
-}
-.srs-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.srs-deck-area {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-}
-
-.flash-card {
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 200px;
-}
-
-.flash-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.flash-glyph {
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  text-align: center;
-  padding: 10px 0;
-}
-
-.flash-hidden-area {
-  border-top: 1px dashed var(--line-strong);
-  padding-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 0.85rem;
-}
-
-.reveal-line {
-  display: flex;
-  gap: 8px;
-}
-.reveal-line .rl-tag {
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  min-width: 58px;
-}
-.reveal-line .rl-val {
-  filter: blur(5px);
-  transition: filter 0.15s ease;
-  user-select: none;
-}
-.flash-card.revealed .reveal-line .rl-val {
-  filter: none;
-  user-select: auto;
-}
-
-.flash-card-footer {
-  margin-top: auto;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.remove-btn {
-  background: transparent;
-  border: none;
-  color: var(--ink-faint);
-  font-size: 0.76rem;
-}
-.remove-btn:hover {
-  color: var(--seal);
+  padding: 0.125rem 0.4375rem;
 }
 
 /* ==========================================================================
@@ -976,13 +1085,14 @@ select:focus-visible {
 
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: var(--space-lg);
   left: 50%;
+  max-width: calc(100vw - 2rem);
   transform: translateX(-50%) translateY(12px);
   background: var(--bg-raised-2);
   border: 1px solid var(--seal);
   color: var(--ink);
-  padding: 10px 20px;
+  padding: 0.625rem 1.25rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
   opacity: 0;
@@ -1005,192 +1115,22 @@ select:focus-visible {
   text-align: center;
   color: var(--ink-faint);
   font-size: 0.74rem;
-  padding: 20px;
+  padding: var(--space-lg) var(--page-pad-x);
 }
 
 /* ==========================================================================
-   RESPONSIVE
+   STATUS TOGGLE, GRAMMAR CARDS, GRID VIEW, DOKKAI, FLASHCARDS, QUIZ
    ========================================================================== */
-
-@media (max-width: 640px) {
-  .header-top {
-    flex-direction: column;
-  }
-  .sentence-line {
-    grid-template-columns: 74px 1fr;
-  }
-  .modal-hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-}
-
-/* ==========================================================================
-   MODIFICATION LAYER — progress dashboard, status toggle, explorer subtabs,
-   grammar cards, 3D flashcard flip, quiz UI. Appended on top of the original
-   theme so the ink/washi visual language stays identical throughout.
-   ========================================================================== */
-
-.hidden {
-  display: none !important;
-}
-
-/* ---- Progress dashboard ---- */
-
-.progress-dashboard {
-  margin-top: 16px;
-  padding: 14px 16px;
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.progress-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.progress-label {
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-.progress-label #progressPercent {
-  color: var(--seal);
-  font-size: 1.15rem;
-}
-.progress-sublabel {
-  font-weight: 400;
-  color: var(--ink-faint);
-  font-size: 0.78rem;
-}
-
-.progress-counts {
-  display: flex;
-  gap: 10px;
-  font-size: 0.8rem;
-}
-.count-chip {
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-.count-chip.mastered span {
-  color: var(--ok);
-  font-weight: 700;
-}
-.count-chip.learning span {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.progress-bar-track {
-  margin-top: 10px;
-  height: 8px;
-  border-radius: 5px;
-  background: var(--bg-raised-2);
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--seal), var(--gold));
-  transition: width 0.35s ease;
-}
-
-.progress-bottom-row {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.quick-filters {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.filter-chip {
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  color: var(--ink-soft);
-  font-size: 0.74rem;
-  padding: 5px 11px;
-  border-radius: 999px;
-}
-.filter-chip:hover {
-  border-color: var(--seal);
-  color: var(--seal);
-}
-.filter-chip.active {
-  background: var(--seal);
-  border-color: var(--seal);
-  color: #fff8f2;
-}
-
-.data-management {
-  display: flex;
-  gap: 14px;
-}
-
-/* ---- Explorer sub-tabs ---- */
-
-.explorer-subtabs {
-  margin-top: 14px;
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.explorer-subtabs::-webkit-scrollbar {
-  display: none;
-}
-
-.subtab {
-  background: transparent;
-  border: none;
-  color: var(--ink-faint);
-  padding: 8px 14px;
-  font-size: 0.82rem;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-}
-.subtab:hover {
-  color: var(--ink);
-}
-.subtab.active {
-  color: var(--seal);
-  border-bottom-color: var(--seal);
-  font-weight: 600;
-}
-
-.explorer-subpanel {
-  display: none;
-  padding-top: 22px;
-}
-.explorer-subpanel.active {
-  display: block;
-}
-
-/* ---- 3-state Learning status toggle ---- */
 
 .status-toggle {
   border: 1px solid var(--line-strong);
   background: transparent;
   border-radius: 999px;
-  padding: 5px 11px;
+  padding: 0.3125rem 0.6875rem;
   font-size: 0.72rem;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   color: var(--ink-soft);
   transition: all 0.15s ease;
 }
@@ -1214,7 +1154,7 @@ select:focus-visible {
 /* ---- Grammar cards ---- */
 
 .grammar-grid {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .grammar-card {
@@ -1222,10 +1162,11 @@ select:focus-visible {
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm);
+  min-width: 0;
 }
 
 .grammar-pattern {
@@ -1244,26 +1185,29 @@ select:focus-visible {
 
 .grammar-card .card-actions {
   border-top: 1px solid var(--line);
-  padding-top: 10px;
-  margin-top: 4px;
+  padding-top: 0.625rem;
+  margin-top: 0.25rem;
 }
 
-/* ---- Flashcard 3D flip ---- */
+/* ---- Flashcard 3D flip -- Flexbox centers everything on every screen ---- */
 
 .flashcard-area {
-  max-width: 480px;
+  max-width: 30rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  gap: var(--space-md);
 }
 
 .flashcard-meta {
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 0.375rem;
   font-size: 0.82rem;
   color: var(--ink-soft);
 }
@@ -1276,7 +1220,7 @@ select:focus-visible {
 
 .flip-card {
   width: 100%;
-  height: 280px;
+  height: clamp(17.5rem, 55vw, 20rem);
   perspective: 1200px;
   cursor: pointer;
 }
@@ -1303,54 +1247,58 @@ select:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: var(--space-md);
   text-align: center;
-  gap: 10px;
+  gap: var(--space-sm);
   overflow-y: auto;
 }
 
 .flip-card-front {
   font-family: var(--font-display);
-  font-size: 3.4rem;
+  font-size: var(--fs-flash-front);
 }
 .flip-card-back {
   transform: rotateY(180deg);
   align-items: stretch;
   text-align: left;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .flip-card-back .fb-glyph {
   font-family: var(--font-display);
   font-size: 1.6rem;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 .flip-card-back .fb-row {
   font-size: 0.85rem;
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .flip-card-back .fb-row .fb-tag {
   color: var(--seal);
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  min-width: 66px;
+  min-width: 4.125rem;
 }
 
 .flashcard-hint {
   font-size: 0.76rem;
   color: var(--ink-faint);
+  text-align: center;
 }
 
 .grade-buttons {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
   width: 100%;
 }
 .grade-btn {
-  flex: 1;
-  padding: 11px;
+  flex: 1 1 40%;
+  min-width: 4.5rem;
+  padding: 0.6875rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
   font-weight: 600;
@@ -1392,15 +1340,17 @@ select:focus-visible {
 .quiz-start-area {
   display: flex;
   justify-content: center;
-  padding: 30px 0;
+  padding: var(--space-xl) 0;
 }
 
 .quiz-progress-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 0.375rem;
   font-size: 0.85rem;
   color: var(--ink-soft);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-md);
 }
 
 .quiz-question-card {
@@ -1408,38 +1358,39 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 22px;
+  padding: var(--space-md);
 }
 
 .quiz-prompt-glyph {
   font-family: var(--font-display);
-  font-size: 2.4rem;
-  margin-bottom: 6px;
+  font-size: clamp(2rem, 8vw, 2.4rem);
+  margin-bottom: 0.375rem;
 }
 .quiz-prompt-context {
   font-size: 0.85rem;
   color: var(--ink-soft);
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 .quiz-prompt-sentence {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  margin-bottom: 16px;
+  font-size: 1.1rem;
+  margin-bottom: var(--space-md);
+  word-break: break-word;
 }
 .quiz-blank {
   color: var(--seal);
   border-bottom: 2px dotted var(--seal);
-  padding: 0 6px;
+  padding: 0 0.375rem;
 }
 
 .quiz-options {
   display: grid;
-  gap: 10px;
+  gap: var(--space-xs);
 }
 
 .quiz-option {
   text-align: left;
-  padding: 12px 14px;
+  padding: 0.75rem 0.875rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--bg-raised-2);
@@ -1466,7 +1417,7 @@ select:focus-visible {
 .quiz-next-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 
 .quiz-summary {
@@ -1474,55 +1425,24 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: var(--space-lg);
 }
 .quiz-summary h3 {
   font-family: var(--font-display);
-  margin: 0 0 6px;
+  margin: 0 0 0.375rem;
 }
 .quiz-summary .missed-item {
-  padding: 8px 0;
+  padding: 0.5rem 0;
   border-top: 1px solid var(--line);
   font-size: 0.85rem;
 }
 
-/* ---- Responsive ---- */
-
-@media (max-width: 640px) {
-  .progress-top-row,
-  .progress-bottom-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .flip-card {
-    height: 320px;
-  }
-  .grade-buttons {
-    flex-wrap: wrap;
-  }
-}
-
-/* ==========================================================================
-   UI FIX LAYER — kanji/vocab/grammar/sentence grids are part of normal
-   document flow now (no per-panel scroll container): the whole page scrolls
-   as one unit via the <body>, and the header/progress dashboard scroll out
-   of view naturally instead of staying pinned or boxed in. The .scroll-panel
-   class name is kept on the HTML elements for backward compatibility but no
-   longer constrains height or adds its own scrollbar.
-   ========================================================================== */
-
-.scroll-panel {
-  /* intentionally no max-height / overflow-y — see note above */
-}
-
-/* ==========================================================================
-   GRID VIEW — rapid whole-level review, dense mini-cards
-   ========================================================================== */
+/* ---- Grid View -- rapid whole-level review, dense mini-cards ---- */
 
 .mini-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
+  gap: var(--space-xs);
 }
 
 .mini-kanji-card {
@@ -1530,11 +1450,11 @@ select:focus-visible {
   border: 1px solid var(--line);
   border-left: 3px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 10px 8px;
+  padding: 0.625rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 0.1875rem;
   text-align: center;
   cursor: pointer;
   transition:
@@ -1547,9 +1467,6 @@ select:focus-visible {
   border-color: var(--seal);
 }
 
-/* Status color-codes the left edge so the whole grid doubles as a progress
-   heat-map at a glance — unlearned stays neutral, learning turns gold,
-   mastered turns green, matching the status-toggle colors used elsewhere. */
 .mini-kanji-card[data-status="learning"] {
   border-left-color: var(--gold);
 }
@@ -1559,7 +1476,7 @@ select:focus-visible {
 
 .mini-kanji-glyph {
   font-family: var(--font-display);
-  font-size: 1.65rem;
+  font-size: var(--fs-mini-glyph);
   line-height: 1;
 }
 
@@ -1592,25 +1509,16 @@ select:focus-visible {
   color: var(--ink-faint);
 }
 
-@media (max-width: 640px) {
-  .mini-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-  }
-}
-
-/* ==========================================================================
-   READING PRACTICE (DOKKAI) — graded mini-stories with toggleable furigana
-   and tap-to-translate sentences.
-   ========================================================================== */
+/* ---- Reading Practice (Dokkai) ---- */
 
 .reading-controls {
-  margin-bottom: 18px;
+  margin-bottom: var(--space-md);
 }
 
 .furigana-switch {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-xs);
   cursor: pointer;
   user-select: none;
   font-size: 0.85rem;
@@ -1624,12 +1532,13 @@ select:focus-visible {
 }
 
 .switch-track {
-  width: 38px;
-  height: 20px;
+  width: 2.375rem;
+  height: 1.25rem;
   border-radius: 999px;
   background: var(--bg-raised-2);
   border: 1px solid var(--line-strong);
   position: relative;
+  flex-shrink: 0;
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
@@ -1638,8 +1547,8 @@ select:focus-visible {
   position: absolute;
   top: 1px;
   left: 1px;
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   border-radius: 50%;
   background: var(--ink-faint);
   transition:
@@ -1651,7 +1560,7 @@ select:focus-visible {
   background: var(--seal-soft);
 }
 .furigana-switch input:checked + .switch-track .switch-thumb {
-  transform: translateX(18px);
+  transform: translateX(1.125rem);
   background: var(--seal);
 }
 .furigana-switch input:focus-visible + .switch-track {
@@ -1664,29 +1573,29 @@ select:focus-visible {
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 26px 28px;
+  padding: var(--space-lg) var(--space-md);
 }
 
 .reading-story-title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin: 0 0 18px;
-  padding-bottom: 12px;
+  margin: 0 0 var(--space-md);
+  padding-bottom: var(--space-sm);
   border-bottom: 1px solid var(--line);
 }
 
 .dokkai-sentence-row {
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 .dokkai-sentence {
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  line-height: 2.4; /* generous — leaves room for furigana above the line */
+  font-size: var(--fs-dokkai-sentence);
+  line-height: 2.4;
   cursor: pointer;
   border-radius: 2px;
-  padding: 2px 3px;
+  padding: 0.125rem 0.1875rem;
   transition: background 0.15s ease;
 }
 .dokkai-sentence:hover {
@@ -1705,7 +1614,6 @@ select:focus-visible {
   color: var(--seal);
   user-select: none;
 }
-/* Master furigana switch: hides every <rt> reading in the story at once */
 .reading-story.furigana-hidden rt {
   display: none;
 }
@@ -1722,11 +1630,58 @@ select:focus-visible {
   color: var(--ink-soft);
   font-style: italic;
   border-left: 2px solid var(--seal);
-  padding-left: 12px;
+  padding-left: 0.75rem;
   margin: 0;
 }
 .sentence-translation.open {
-  max-height: 100px;
+  max-height: 6.25rem;
   opacity: 1;
-  margin: 4px 0 12px;
+  margin: 0.25rem 0 0.75rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE ENHANCEMENTS
+   Only genuine structural shifts live here -- anything that can flex or
+   scale continuously (grids, type, spacing) already does, above, with no
+   breakpoint at all.
+   ========================================================================== */
+
+/* ---- Tablet and up (>=768px) ---- */
+@media (min-width: 768px) {
+  .header-top {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .progress-top-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .progress-bottom-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .modal-hero {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .sentence-line {
+    grid-template-columns: 5.75rem 1fr;
+  }
+}
+
+/* ---- Desktop and up (>=1024px) ---- */
+@media (min-width: 1024px) {
+  .kanji-modal-body {
+    padding: 2rem 1.875rem 1.75rem;
+  }
 }
