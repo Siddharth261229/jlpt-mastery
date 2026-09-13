@@ -1122,7 +1122,11 @@
     return localStorage.getItem(STATUS_PREFIX + id) || "unlearned";
   }
 
-  function setStatus(id, status) {
+  /** Core status write with no UI refresh — used directly by bulk
+   *  operations (like Add All to Deck) so a loop over 300+ kanji doesn't
+   *  trigger 300+ redundant progress/badge recalculations. setStatus()
+   *  below wraps this for the normal single-click path. */
+  function applyStatusChange(id, status) {
     const prev = getStatus(id);
     localStorage.setItem(STATUS_PREFIX + id, status);
 
@@ -1139,7 +1143,10 @@
         writeItemData(id, data);
       }
     }
+  }
 
+  function setStatus(id, status) {
+    applyStatusChange(id, status);
     refreshProgressUI();
     refreshAllStatusToggles();
     applyStatusFilter();
@@ -1818,6 +1825,121 @@
 
       await Promise.allSettled(chunk.map(fetchKanjiDetail));
     }
+  }
+
+  /** Keep the bulk-add button's label in sync with the selected level —
+   *  called on init and every level switch. */
+  function updateAddAllButtonLabel() {
+    const btn = document.getElementById("addAllToDeckBtn");
+    if (btn && !btn.disabled)
+      btn.textContent = `Add All ${state.level.toUpperCase()} to Deck`;
+  }
+
+  /** Bulk action: move every Unlearned Kanji + Grammar item in the current
+   *  level to Learning in one shot. Mastered items are left untouched.
+   *  Vocabulary is deliberately excluded — this app has no fixed
+   *  "complete word list" per level (vocab comes from live Jisho search,
+   *  which is query-driven and open-ended), so there's no finite set to
+   *  iterate the way there is for Kanji (kanjiapi's per-level list) and
+   *  Grammar (the curated, fixed set on the Grammar tab). */
+  async function addAllToDeck() {
+    const level = state.level;
+    let kanjiChars;
+    try {
+      kanjiChars = await ensureKanjiList(level);
+    } catch {
+      toast("Couldn't reach kanjiapi.dev to load the kanji list");
+      return;
+    }
+    const grammarPoints = GRAMMAR_POINTS[level] || [];
+
+    const kanjiIds = kanjiChars.map(kanjiItemId);
+    const grammarIds = grammarPoints.map((p) => grammarItemId(p.pattern));
+    const allIds = [...kanjiIds, ...grammarIds];
+    const eligibleIds = allIds.filter((id) => getStatus(id) === "unlearned");
+    const masteredCount = allIds.filter(
+      (id) => getStatus(id) === "mastered",
+    ).length;
+
+    if (eligibleIds.length === 0) {
+      toast(
+        `Everything in ${level.toUpperCase()} is already Learning or Mastered`,
+      );
+      return;
+    }
+
+    const confirmed = confirm(
+      `Add ${eligibleIds.length} ${level.toUpperCase()} kanji & grammar item${eligibleIds.length === 1 ? "" : "s"} to your Flashcard Review Deck?\n\n` +
+        (masteredCount > 0
+          ? `${masteredCount} already-Mastered item${masteredCount === 1 ? "" : "s"} will be left untouched.\n\n`
+          : "") +
+        `Note: Vocabulary isn't included — there's no fixed "complete word list" per level to bulk-add from, since vocab comes from live dictionary search.`,
+    );
+    if (!confirmed) return;
+
+    const btn = document.getElementById("addAllToDeckBtn");
+    btn.disabled = true;
+
+    // Grammar data is fully local already — write + flip status immediately.
+    grammarPoints.forEach((point) => {
+      const id = grammarItemId(point.pattern);
+      writeItemData(id, {
+        type: "grammar",
+        level,
+        display: point.pattern,
+        pattern: point.pattern,
+        meaning: point.meaning,
+        explanation: point.explanation,
+        example: point.example,
+      });
+      if (getStatus(id) === "unlearned") applyStatusChange(id, "learning");
+    });
+
+    // Kanji needs its detail fetched so flashcards/quiz have something to
+    // show later. Batched (20 at a time) so a large N3 list doesn't fire
+    // hundreds of simultaneous requests — anything already cached from a
+    // prior Explorer or Grid View visit resolves instantly either way.
+    const CHUNK = 20;
+    for (let i = 0; i < kanjiChars.length; i += CHUNK) {
+      const chunk = kanjiChars.slice(i, i + CHUNK);
+      const results = await Promise.allSettled(chunk.map(fetchKanjiDetail));
+      results.forEach((r) => {
+        if (r.status !== "fulfilled") return;
+        const detail = r.value;
+        const id = kanjiItemId(detail.kanji);
+        const itemLevel = detail.jlpt ? `n${detail.jlpt}` : level;
+        writeItemData(id, {
+          type: "kanji",
+          level: itemLevel,
+          char: detail.kanji,
+          display: detail.kanji,
+          meanings: detail.meanings || [],
+          onyomi: detail.on_readings || [],
+          kunyomi: detail.kun_readings || [],
+          strokeCount: detail.stroke_count,
+        });
+        if (getStatus(id) === "unlearned") applyStatusChange(id, "learning");
+      });
+      btn.textContent = `Adding… ${Math.min(i + CHUNK, kanjiChars.length)}/${kanjiChars.length}`;
+    }
+
+    btn.disabled = false;
+    updateAddAllButtonLabel();
+
+    // One batch of UI refreshes at the end, rather than one per item.
+    refreshProgressUI();
+    refreshAllStatusToggles();
+    applyStatusFilter();
+    refreshFlashcardDueBadge();
+    if (state.mode === "gridview") renderGridView(); // repaint mini-card status colors
+    if (state.mode === "flashcard") {
+      buildFlashcardPool();
+      renderFlashcardArea();
+    }
+
+    toast(
+      `Added ${eligibleIds.length} item${eligibleIds.length === 1 ? "" : "s"} to Learning`,
+    );
   }
 
   // ---- Kanji / Vocab Deep-Dive Modal ----
@@ -2538,6 +2660,7 @@
     await ensureKanjiList(level).catch(() => {});
     refreshProgressUI();
     refreshFlashcardDueBadge();
+    updateAddAllButtonLabel();
     if (state.mode === "explorer") {
       if (state.explorerTab === "kanji") loadKanjiLevelList();
       else if (state.explorerTab === "vocab")
@@ -2619,6 +2742,9 @@
     document
       .getElementById("kanjiLoadMore")
       .addEventListener("click", renderNextKanjiBatch);
+    document
+      .getElementById("addAllToDeckBtn")
+      .addEventListener("click", addAllToDeck);
 
     // Reading Practice: master furigana switch just toggles a CSS class,
     // no re-render needed since the ruby markup is already in the DOM.
@@ -2755,6 +2881,7 @@
     await ensureKanjiList(state.level).catch(() => {});
     refreshProgressUI();
     refreshFlashcardDueBadge();
+    updateAddAllButtonLabel();
     // The due count changes purely with the passage of time (a card graded
     // [Again] becomes due again after just 1 minute), so re-check it
     // periodically even if the learner doesn't touch anything.

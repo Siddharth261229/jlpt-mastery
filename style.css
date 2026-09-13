@@ -1685,3 +1685,16 @@ select:focus-visible {
     padding: 2rem 1.875rem 1.75rem;
   }
 }
+
+/* ---- Bulk action: Add All to Deck (above the Grid View grid) ---- */
+
+.bulk-action-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: var(--space-md);
+}
+
+#addAllToDeckBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
