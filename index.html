@@ -1,425 +1,302 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>綴 Tsuzuri — JLPT N5–N3 Mastery Hub</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>綴 Tsuzuri — JLPT N5–N3 Mastery Hub</title>
 
-    <!-- Google Fonts: Shippori Mincho for a Japanese-bookbinding display feel, Zen Kaku Gothic New for UI text -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+  <!-- Google Fonts: Shippori Mincho for a Japanese-bookbinding display feel, Zen Kaku Gothic New for UI text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <!-- ============================================================
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
        HEADER — brand mark, level filter, 3-mode nav, progress bar
        ============================================================ -->
-    <header class="site-header">
-      <div class="header-top">
-        <div class="brand">
-          <span class="brand-mark">綴</span>
-          <div class="brand-text">
-            <h1>Tsuzuri</h1>
-            <p>JLPT N5–N3 Mastery Hub</p>
-          </div>
-        </div>
-
-        <div class="header-controls">
-          <label class="level-select-wrap" for="levelSelect">
-            <span class="field-label">Level</span>
-            <select id="levelSelect" class="level-select">
-              <option value="n5">N5</option>
-              <option value="n4">N4</option>
-              <option value="n3">N3</option>
-            </select>
-          </label>
-          <button
-            id="themeToggle"
-            class="icon-btn"
-            title="Toggle paper / ink theme"
-            aria-label="Toggle theme"
-          >
-            <span class="theme-icon">◐</span>
-          </button>
+  <header class="site-header">
+    <div class="header-top">
+      <div class="brand">
+        <span class="brand-mark">綴</span>
+        <div class="brand-text">
+          <h1>Tsuzuri</h1>
+          <p>JLPT N5–N3 Mastery Hub</p>
         </div>
       </div>
 
-      <!-- Mode navigation: Explorer & Search / Flashcard Deck / Practice Quiz -->
-      <nav class="mode-tabs" role="tablist" aria-label="Study mode">
-        <button
-          class="mode-tab active"
-          data-mode="explorer"
-          role="tab"
-          aria-selected="true"
-        >
-          🔍 Explorer &amp; Search
+      <div class="header-controls">
+        <label class="level-select-wrap" for="levelSelect">
+          <span class="field-label">Level</span>
+          <select id="levelSelect" class="level-select">
+            <option value="n5">N5</option>
+            <option value="n4">N4</option>
+            <option value="n3">N3</option>
+          </select>
+        </label>
+        <button id="themeToggle" class="icon-btn" title="Toggle paper / ink theme" aria-label="Toggle theme">
+          <span class="theme-icon">◐</span>
         </button>
-        <button
-          class="mode-tab"
-          data-mode="gridview"
-          role="tab"
-          aria-selected="false"
-        >
-          🗂 Grid View
-        </button>
-        <button
-          class="mode-tab"
-          data-mode="reading"
-          role="tab"
-          aria-selected="false"
-        >
-          📖 Reading Practice
-        </button>
-        <button
-          class="mode-tab"
-          data-mode="flashcard"
-          role="tab"
-          aria-selected="false"
-        >
-          🎴 Flashcard Deck
-          <span id="flashcardDueBadge" class="due-badge hidden">0</span>
-        </button>
-        <button
-          class="mode-tab"
-          data-mode="quiz"
-          role="tab"
-          aria-selected="false"
-        >
-          📝 Practice Quiz
-        </button>
-      </nav>
-
-      <!-- ---------- PROGRESS DASHBOARD ---------- -->
-      <div class="progress-dashboard">
-        <div class="progress-top-row">
-          <div class="progress-label">
-            <span id="progressPercent">0%</span> mastered
-            <span class="progress-sublabel"
-              >— kanji &amp; grammar for
-              <span id="progressLevelName">N5</span></span
-            >
-          </div>
-          <div class="progress-counts">
-            <span class="count-chip unlearned"
-              >⚪ <span id="countUnlearned">0</span></span
-            >
-            <span class="count-chip learning"
-              >🟡 <span id="countLearning">0</span></span
-            >
-            <span class="count-chip mastered"
-              >🟢 <span id="countMastered">0</span></span
-            >
-          </div>
-        </div>
-        <div class="progress-bar-track">
-          <div
-            id="progressBarFill"
-            class="progress-bar-fill"
-            style="width: 0%"
-          ></div>
-        </div>
-        <div class="progress-bottom-row">
-          <div
-            class="quick-filters"
-            role="group"
-            aria-label="Filter by learning status"
-          >
-            <button class="filter-chip active" data-filter="all">All</button>
-            <button class="filter-chip" data-filter="unlearned">
-              Unlearned
-            </button>
-            <button class="filter-chip" data-filter="learning">Learning</button>
-            <button class="filter-chip" data-filter="mastered">Mastered</button>
-          </div>
-          <div class="data-management">
-            <button id="exportBtn" class="ghost-btn">⭳ Export progress</button>
-            <button id="importBtn" class="ghost-btn">⭱ Import progress</button>
-            <input
-              type="file"
-              id="importFile"
-              accept="application/json"
-              hidden
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Universal live search (applies within the active Explorer sub-tab) -->
-      <div class="search-row">
-        <div class="search-box">
-          <span class="search-icon">検</span>
-          <input
-            id="universalSearch"
-            type="text"
-            autocomplete="off"
-            placeholder="Search a kanji (漢), word (単語), or romaji…"
-          />
-          <button
-            id="clearSearch"
-            class="clear-btn"
-            title="Clear search"
-            aria-label="Clear search"
-          >
-            ×
-          </button>
-        </div>
-        <div id="searchStatus" class="search-status" aria-live="polite"></div>
-      </div>
-
-      <!-- Explorer sub-tabs (only relevant while in Explorer mode) -->
-      <nav id="explorerSubtabs" class="explorer-subtabs">
-        <button class="subtab active" data-subtab="kanji">Kanji</button>
-        <button class="subtab" data-subtab="vocab">Vocabulary</button>
-        <button class="subtab" data-subtab="grammar">Grammar</button>
-        <button class="subtab" data-subtab="sentence">Sentences</button>
-      </nav>
-    </header>
-
-    <!-- ============================================================
-       MAIN CONTENT
-       ============================================================ -->
-    <main class="app-main">
-      <!-- ---------- EXPLORER & SEARCH ---------- -->
-      <section
-        id="panel-explorer"
-        class="mode-panel active"
-        aria-label="Explorer and Search"
-      >
-        <div id="explorer-kanji" class="explorer-subpanel active">
-          <div class="panel-heading">
-            <h2>Kanji Explorer</h2>
-            <p>
-              Browse the official kanji list for the selected JLPT level. Click
-              the status badge to cycle Unlearned → Learning → Mastered.
-            </p>
-          </div>
-          <div id="kanjiGrid" class="card-grid scroll-panel"></div>
-          <div id="kanjiLoadMoreWrap" class="load-more-wrap">
-            <button id="kanjiLoadMore" class="secondary-btn">
-              Load more kanji
-            </button>
-          </div>
-        </div>
-
-        <div id="explorer-vocab" class="explorer-subpanel">
-          <div class="panel-heading">
-            <h2>Vocabulary Search</h2>
-            <p>
-              Search any Japanese, romaji, or English term to pull compound
-              words and their readings.
-            </p>
-          </div>
-          <div id="vocabGrid" class="card-grid scroll-panel"></div>
-          <div id="vocabEmpty" class="empty-state">
-            <p>
-              捜す — Type a word above to search Jisho's dictionary, or try one
-              of the starter words below.
-            </p>
-          </div>
-        </div>
-
-        <div id="explorer-grammar" class="explorer-subpanel">
-          <div class="panel-heading">
-            <h2>Grammar Points</h2>
-            <p>
-              Core grammar patterns for this level, each with a worked example
-              broken into all five reading formats.
-            </p>
-          </div>
-          <div
-            id="grammarGrid"
-            class="card-grid grammar-grid scroll-panel"
-          ></div>
-        </div>
-
-        <div id="explorer-sentence" class="explorer-subpanel">
-          <div class="panel-heading">
-            <h2>Sentence Bank</h2>
-            <p>
-              Every sentence is broken into five parallel reading lines. Search
-              to filter by kanji, word, or English meaning.
-            </p>
-          </div>
-          <div id="sentenceList" class="sentence-list scroll-panel"></div>
-        </div>
-      </section>
-
-      <!-- ---------- GRID VIEW (rapid whole-level review) ---------- -->
-      <section id="panel-gridview" class="mode-panel" aria-label="Grid View">
-        <div class="panel-heading">
-          <h2>Grid View</h2>
-          <p>
-            Every kanji for <span id="gridViewLevelName">N5</span> at once —
-            <span id="gridViewCount">0</span> characters. Scan the set, then
-            click any tile for the full Deep-Dive panel.
-          </p>
-        </div>
-        <div class="bulk-action-row">
-          <button id="addAllToDeckBtn" class="primary-btn">
-            Add All N5 to Deck
-          </button>
-        </div>
-        <div id="gridViewContainer" class="mini-card-grid scroll-panel"></div>
-      </section>
-
-      <!-- ---------- READING PRACTICE (Dokkai) ---------- -->
-      <section
-        id="panel-reading"
-        class="mode-panel"
-        aria-label="Reading Practice"
-      >
-        <div class="panel-heading">
-          <h2>Reading Practice (読解)</h2>
-          <p>
-            A short graded story for <span id="readingLevelName">N5</span>.
-            Click any sentence to reveal its English translation.
-          </p>
-        </div>
-
-        <div class="reading-controls">
-          <label class="furigana-switch">
-            <input type="checkbox" id="furiganaToggle" checked />
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-            <span class="switch-label">Show Furigana</span>
-          </label>
-        </div>
-
-        <article id="readingStory" class="reading-story"></article>
-      </section>
-
-      <!-- ---------- FLASHCARD DECK ---------- -->
-      <section
-        id="panel-flashcard"
-        class="mode-panel"
-        aria-label="Flashcard Deck"
-      >
-        <div class="panel-heading">
-          <h2>Flashcard Deck</h2>
-          <p>
-            Pulled from everything you've marked Learning or Mastered at the
-            current level. Click the card to flip it.
-          </p>
-        </div>
-
-        <div id="flashcardEmpty" class="empty-state">
-          <p>
-            空 — No cards yet. Mark a kanji, word, or grammar point as Learning
-            or Mastered in Explorer to add it here.
-          </p>
-        </div>
-
-        <div id="flashcardArea" class="flashcard-area">
-          <div class="flashcard-meta">
-            <span id="flashcardProgressLabel">0 / 0</span>
-            <span
-              id="flashcardIntervalLabel"
-              class="flashcard-interval-label"
-            ></span>
-            <button id="flashcardShuffle" class="ghost-btn">Shuffle</button>
-          </div>
-
-          <div id="flipCard" class="flip-card">
-            <div class="flip-card-inner">
-              <div
-                class="flip-card-face flip-card-front"
-                id="flipCardFront"
-              ></div>
-              <div
-                class="flip-card-face flip-card-back"
-                id="flipCardBack"
-              ></div>
-            </div>
-          </div>
-
-          <div class="flashcard-hint">
-            Tap the card to reveal readings, meaning, and example
-          </div>
-
-          <div class="grade-buttons">
-            <button class="grade-btn grade-again" data-grade="again">
-              Again
-            </button>
-            <button class="grade-btn grade-hard" data-grade="hard">Hard</button>
-            <button class="grade-btn grade-good" data-grade="good">Good</button>
-            <button class="grade-btn grade-easy" data-grade="easy">Easy</button>
-          </div>
-        </div>
-
-        <div id="flashcardDone" class="empty-state hidden">
-          <p>
-            🎉 Session complete — every card in today's queue has been graded.
-            Come back to Explorer to add more, or shuffle to go again.
-          </p>
-        </div>
-      </section>
-
-      <!-- ---------- PRACTICE QUIZ ---------- -->
-      <section id="panel-quiz" class="mode-panel" aria-label="Practice Quiz">
-        <div class="panel-heading">
-          <h2>Practice Quiz</h2>
-          <p>
-            Multiple-choice questions generated from your Learning / Mastered
-            pool: meaning matching, reading recognition, and fill-in-the-blank.
-          </p>
-        </div>
-
-        <div id="quizEmpty" class="empty-state">
-          <p>
-            Mark at least 4 items as Learning or Mastered to unlock the quiz.
-          </p>
-        </div>
-
-        <div id="quizStartArea" class="quiz-start-area hidden">
-          <button id="quizStartBtn" class="primary-btn">
-            Start a 10-question round
-          </button>
-        </div>
-
-        <div id="quizArea" class="quiz-area hidden">
-          <div class="quiz-progress-row">
-            <span id="quizQuestionLabel">Question 1 / 10</span>
-            <span id="quizScoreLabel">Score: 0</span>
-          </div>
-          <div id="quizQuestionCard" class="quiz-question-card"></div>
-        </div>
-
-        <div id="quizSummary" class="quiz-summary hidden"></div>
-      </section>
-    </main>
-
-    <!-- ============================================================
-       KANJI / VOCAB DEEP-DIVE MODAL
-       ============================================================ -->
-    <div id="kanjiModalOverlay" class="modal-overlay" aria-hidden="true">
-      <div
-        id="kanjiModal"
-        class="kanji-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalKanjiChar"
-      >
-        <button id="closeModal" class="modal-close" aria-label="Close">
-          ×
-        </button>
-        <div id="kanjiModalBody" class="kanji-modal-body"></div>
       </div>
     </div>
 
-    <div id="toast" class="toast" aria-live="polite"></div>
+    <!-- Mode navigation: Explorer & Search / Flashcard Deck / Practice Quiz -->
+    <nav class="mode-tabs" role="tablist" aria-label="Study mode">
+      <button class="mode-tab active" data-mode="explorer" role="tab" aria-selected="true">
+        🔍 Explorer &amp; Search
+      </button>
+      <button class="mode-tab" data-mode="gridview" role="tab" aria-selected="false">
+        🗂 Grid View
+      </button>
+      <button class="mode-tab" data-mode="reading" role="tab" aria-selected="false">
+        📖 Reading Practice
+      </button>
+      <button class="mode-tab" data-mode="extensive" role="tab" aria-selected="false">
+        📰 Extensive Reading
+      </button>
+      <button class="mode-tab" data-mode="flashcard" role="tab" aria-selected="false">
+        🎴 Flashcard Deck
+        <span id="flashcardDueBadge" class="due-badge hidden">0</span>
+      </button>
+      <button class="mode-tab" data-mode="quiz" role="tab" aria-selected="false">
+        📝 Practice Quiz
+      </button>
+    </nav>
 
-    <footer class="site-footer">
-      <p>
-        Data: kanjiapi.dev &amp; jisho.org (via CORS proxy) · Local curated
-        sentence &amp; grammar bank · Speech via Web Speech API · Progress
-        stored locally in your browser
-      </p>
-    </footer>
+    <!-- ---------- PROGRESS DASHBOARD ---------- -->
+    <div class="progress-dashboard">
+      <div class="progress-top-row">
+        <div class="progress-label">
+          <span id="progressPercent">0%</span> mastered
+          <span class="progress-sublabel">— kanji &amp; grammar for <span id="progressLevelName">N5</span></span>
+        </div>
+        <div class="progress-counts">
+          <span class="count-chip unlearned">⚪ <span id="countUnlearned">0</span></span>
+          <span class="count-chip learning">🟡 <span id="countLearning">0</span></span>
+          <span class="count-chip mastered">🟢 <span id="countMastered">0</span></span>
+        </div>
+      </div>
+      <div class="progress-bar-track">
+        <div id="progressBarFill" class="progress-bar-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-bottom-row">
+        <div class="quick-filters" role="group" aria-label="Filter by learning status">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="unlearned">Unlearned</button>
+          <button class="filter-chip" data-filter="learning">Learning</button>
+          <button class="filter-chip" data-filter="mastered">Mastered</button>
+        </div>
+        <div class="data-management">
+          <button id="exportBtn" class="ghost-btn">⭳ Export progress</button>
+          <button id="importBtn" class="ghost-btn">⭱ Import progress</button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+        </div>
+      </div>
+    </div>
 
-    <script src="script.js"></script>
-  </body>
+    <!-- Universal live search (applies within the active Explorer sub-tab) -->
+    <div class="search-row">
+      <div class="search-box">
+        <span class="search-icon">検</span>
+        <input id="universalSearch" type="text" autocomplete="off" placeholder="Search a kanji (漢), word (単語), or romaji…" />
+        <button id="clearSearch" class="clear-btn" title="Clear search" aria-label="Clear search">×</button>
+      </div>
+      <div id="searchStatus" class="search-status" aria-live="polite"></div>
+    </div>
+
+    <!-- Explorer sub-tabs (only relevant while in Explorer mode) -->
+    <nav id="explorerSubtabs" class="explorer-subtabs">
+      <button class="subtab active" data-subtab="kanji">Kanji</button>
+      <button class="subtab" data-subtab="vocab">Vocabulary</button>
+      <button class="subtab" data-subtab="grammar">Grammar</button>
+      <button class="subtab" data-subtab="sentence">Sentences</button>
+    </nav>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="app-main">
+
+    <!-- ---------- EXPLORER & SEARCH ---------- -->
+    <section id="panel-explorer" class="mode-panel active" aria-label="Explorer and Search">
+
+      <div id="explorer-kanji" class="explorer-subpanel active">
+        <div class="panel-heading">
+          <h2>Kanji Explorer</h2>
+          <p>Browse the official kanji list for the selected JLPT level. Click the status badge to cycle Unlearned → Learning → Mastered.</p>
+        </div>
+        <div id="kanjiGrid" class="card-grid scroll-panel"></div>
+        <div id="kanjiLoadMoreWrap" class="load-more-wrap">
+          <button id="kanjiLoadMore" class="secondary-btn">Load more kanji</button>
+        </div>
+      </div>
+
+      <div id="explorer-vocab" class="explorer-subpanel">
+        <div class="panel-heading">
+          <h2>Vocabulary Search</h2>
+          <p>Search any Japanese, romaji, or English term to pull compound words and their readings.</p>
+        </div>
+        <div id="vocabGrid" class="card-grid scroll-panel"></div>
+        <div id="vocabEmpty" class="empty-state">
+          <p>捜す — Type a word above to search Jisho's dictionary, or try one of the starter words below.</p>
+        </div>
+      </div>
+
+      <div id="explorer-grammar" class="explorer-subpanel">
+        <div class="panel-heading">
+          <h2>Grammar Points</h2>
+          <p>Core grammar patterns for this level, each with a worked example broken into all five reading formats.</p>
+        </div>
+        <div id="grammarGrid" class="card-grid grammar-grid scroll-panel"></div>
+      </div>
+
+      <div id="explorer-sentence" class="explorer-subpanel">
+        <div class="panel-heading">
+          <h2>Sentence Bank</h2>
+          <p>Every sentence is broken into five parallel reading lines. Search to filter by kanji, word, or English meaning.</p>
+        </div>
+        <div id="sentenceList" class="sentence-list scroll-panel"></div>
+      </div>
+
+    </section>
+
+    <!-- ---------- GRID VIEW (rapid whole-level review) ---------- -->
+    <section id="panel-gridview" class="mode-panel" aria-label="Grid View">
+      <div class="panel-heading">
+        <h2>Grid View</h2>
+        <p>Every kanji for <span id="gridViewLevelName">N5</span> at once — <span id="gridViewCount">0</span> characters. Scan the set, then click any tile for the full Deep-Dive panel.</p>
+      </div>
+      <div class="bulk-action-row">
+        <button id="addAllToDeckBtn" class="primary-btn">Add All N5 to Deck</button>
+      </div>
+      <div id="gridViewContainer" class="mini-card-grid scroll-panel"></div>
+    </section>
+
+    <!-- ---------- READING PRACTICE (Dokkai) ---------- -->
+    <section id="panel-reading" class="mode-panel" aria-label="Reading Practice">
+      <div class="panel-heading">
+        <h2>Reading Practice (読解)</h2>
+        <p>A short graded story for <span id="readingLevelName">N5</span>. Click any sentence to reveal its English translation.</p>
+      </div>
+
+      <div class="reading-controls">
+        <label class="furigana-switch">
+          <input type="checkbox" id="furiganaToggle" checked />
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+          <span class="switch-label">Show Furigana</span>
+        </label>
+      </div>
+
+      <article id="readingStory" class="reading-story"></article>
+    </section>
+
+    <!-- ---------- EXTENSIVE READING HUB (Yomitan-style hover dictionary) ---------- -->
+    <section id="panel-extensive" class="mode-panel" aria-label="Extensive Reading">
+      <div class="panel-heading">
+        <h2>Extensive Reading (多読)</h2>
+        <p>Paste any native Japanese text — a news article, essay, or blog post — then hover (or tap) a word for an instant dictionary lookup, right where you're reading.</p>
+      </div>
+
+      <div id="extensiveInputWrap" class="extensive-input-wrap">
+        <textarea id="extensiveInput" class="extensive-textarea" rows="10" placeholder="ここに日本語のテキストを貼り付けてください…&#10;&#10;Paste Japanese text here, then press Read Mode."></textarea>
+        <div class="extensive-input-actions">
+          <button id="enterReadModeBtn" class="primary-btn">Read Mode</button>
+        </div>
+      </div>
+
+      <div id="extensiveReadingPane" class="extensive-reading-pane hidden"></div>
+      <div id="extensiveExitRow" class="extensive-exit-row hidden">
+        <button id="exitReadModeBtn" class="ghost-btn">← Back to editing</button>
+      </div>
+    </section>
+
+    <!-- ---------- FLASHCARD DECK ---------- -->
+    <section id="panel-flashcard" class="mode-panel" aria-label="Flashcard Deck">
+      <div class="panel-heading">
+        <h2>Flashcard Deck</h2>
+        <p>Pulled from everything you've marked Learning or Mastered at the current level. Click the card to flip it.</p>
+      </div>
+
+      <div id="flashcardEmpty" class="empty-state">
+        <p>空 — No cards yet. Mark a kanji, word, or grammar point as Learning or Mastered in Explorer to add it here.</p>
+      </div>
+
+      <div id="flashcardArea" class="flashcard-area">
+        <div class="flashcard-meta">
+          <span id="flashcardProgressLabel">0 / 0</span>
+          <span id="flashcardIntervalLabel" class="flashcard-interval-label"></span>
+          <button id="flashcardShuffle" class="ghost-btn">Shuffle</button>
+        </div>
+
+        <div id="flipCard" class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-face flip-card-front" id="flipCardFront"></div>
+            <div class="flip-card-face flip-card-back" id="flipCardBack"></div>
+          </div>
+        </div>
+
+        <div class="flashcard-hint">Tap the card to reveal readings, meaning, and example</div>
+
+        <div class="grade-buttons">
+          <button class="grade-btn grade-again" data-grade="again">Again</button>
+          <button class="grade-btn grade-hard" data-grade="hard">Hard</button>
+          <button class="grade-btn grade-good" data-grade="good">Good</button>
+          <button class="grade-btn grade-easy" data-grade="easy">Easy</button>
+        </div>
+      </div>
+
+      <div id="flashcardDone" class="empty-state hidden">
+        <p>🎉 Session complete — every card in today's queue has been graded. Come back to Explorer to add more, or shuffle to go again.</p>
+      </div>
+    </section>
+
+    <!-- ---------- PRACTICE QUIZ ---------- -->
+    <section id="panel-quiz" class="mode-panel" aria-label="Practice Quiz">
+      <div class="panel-heading">
+        <h2>Practice Quiz</h2>
+        <p>Multiple-choice questions generated from your Learning / Mastered pool: meaning matching, reading recognition, and fill-in-the-blank.</p>
+      </div>
+
+      <div id="quizEmpty" class="empty-state">
+        <p>Mark at least 4 items as Learning or Mastered to unlock the quiz.</p>
+      </div>
+
+      <div id="quizStartArea" class="quiz-start-area hidden">
+        <button id="quizStartBtn" class="primary-btn">Start a 10-question round</button>
+      </div>
+
+      <div id="quizArea" class="quiz-area hidden">
+        <div class="quiz-progress-row">
+          <span id="quizQuestionLabel">Question 1 / 10</span>
+          <span id="quizScoreLabel">Score: 0</span>
+        </div>
+        <div id="quizQuestionCard" class="quiz-question-card"></div>
+      </div>
+
+      <div id="quizSummary" class="quiz-summary hidden"></div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       KANJI / VOCAB DEEP-DIVE MODAL
+       ============================================================ -->
+  <div id="kanjiModalOverlay" class="modal-overlay" aria-hidden="true">
+    <div id="kanjiModal" class="kanji-modal" role="dialog" aria-modal="true" aria-labelledby="modalKanjiChar">
+      <button id="closeModal" class="modal-close" aria-label="Close">×</button>
+      <div id="kanjiModalBody" class="kanji-modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <footer class="site-footer">
+    <p>Data: kanjiapi.dev &amp; jisho.org (via CORS proxy) · Local curated sentence &amp; grammar bank · Speech via Web Speech API · Progress stored locally in your browser</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
 </html>
